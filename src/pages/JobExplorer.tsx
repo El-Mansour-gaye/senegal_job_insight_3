@@ -1,0 +1,67 @@
+import React, { useState, useMemo } from 'react';
+import { JobCard } from '../components/JobCard';
+import { FilterBar } from '../components/FilterBar';
+import { MOCK_JOBS } from '../data/mockData';
+
+export const JobExplorer: React.FC = () => {
+  const [filters, setFilters] = useState({
+    search: '',
+    sector: 'Tous les secteurs',
+    city: 'Toutes les villes',
+    contract: 'Tous les contrats'
+  });
+
+  const filteredJobs = useMemo(() => {
+    return MOCK_JOBS.filter(job => {
+      const matchSearch = job.title.toLowerCase().includes(filters.search.toLowerCase()) || 
+                          job.company.toLowerCase().includes(filters.search.toLowerCase());
+      const matchSector = filters.sector === 'Tous les secteurs' || job.sector.includes(filters.sector);
+      const matchCity = filters.city === 'Toutes les villes' || job.location === filters.city;
+      const matchContract = filters.contract === 'Tous les contrats' || job.contract_type === filters.contract;
+      
+      return matchSearch && matchSector && matchCity && matchContract;
+    });
+  }, [filters]);
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      <div>
+        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Explorez les opportunités</h1>
+        <p className="text-slate-500 mt-1">Trouvez le job qui vous correspond parmi des milliers d'offres.</p>
+      </div>
+
+      <FilterBar filters={filters} setFilters={setFilters} />
+
+      <div className="flex items-center justify-between text-sm text-slate-500 mb-4 px-2">
+        <p><span className="font-bold text-slate-800">{filteredJobs.length}</span> offres correspondantes</p>
+        <div className="flex gap-4">
+          <button className="hover:text-primary font-medium">Plus récents</button>
+          <button className="hover:text-primary font-medium">Salaire (estim.)</button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4">
+        {filteredJobs.length > 0 ? (
+          filteredJobs.map(job => (
+            <JobCard key={job.id} job={job} />
+          ))
+        ) : (
+          <div className="bg-white p-12 rounded-2xl border border-dashed border-slate-300 text-center space-y-4">
+             <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-300">
+               <JobCard job={MOCK_JOBS[0]} /> {/* This is just for the icon, using JobCard component wrongly for demo */}
+             </div>
+             <h3 className="text-lg font-bold text-slate-700">Aucun résultat trouvé</h3>
+             <p className="text-slate-500">Essayez de modifier vos filtres ou votre recherche.</p>
+             <button 
+               onClick={() => setFilters({search: '', sector: 'Tous les secteurs', city: 'Toutes les villes', contract: 'Tous les contrats'})}
+               className="text-primary font-bold hover:underline"
+             >
+               Réinitialiser les filtres
+             </button>
+          </div>
+        )
+        }
+      </div>
+    </div>
+  );
+};
