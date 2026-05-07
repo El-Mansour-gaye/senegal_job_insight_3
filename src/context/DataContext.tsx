@@ -52,6 +52,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const topCity = Object.entries(cityCounts).sort((a,b) => b[1] - a[1])[0]?.[0] || 'Sénégal';
     const topSkill = Object.entries(skillCounts).sort((a,b) => b[1] - a[1])[0]?.[0] || 'N/A';
 
+    // Calculate average salary
+    const jobsWithSalary = jobs.filter(j => j.salary_avg !== undefined);
+    const avgSalary = jobsWithSalary.length > 0 
+      ? Math.round(jobsWithSalary.reduce((acc, curr) => acc + (curr.salary_avg || 0), 0) / jobsWithSalary.length)
+      : 650000; // Fallback estimate
+
+    // Sort sector distribution for charts
+    const sortedSectorDistribution = Object.entries(sectorCounts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, value]) => ({ name, value }));
+
     // Préparation des données pour le RadarChart (Analyse)
     const radarSkills = Object.entries(skillCounts)
       .sort((a,b) => b[1] - a[1])
@@ -75,25 +86,65 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       geoData[job.location].count += 1;
     });
 
+    // Compute monthly evolution from publish_date
+    const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
+    const monthlyData: Record<string, number> = {};
+    
+    // Initialize current and past 5 months with 0
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const label = months[d.getMonth()];
+      monthlyData[label] = 0;
+    }
+
+    jobs.forEach(job => {
+      try {
+        const date = new Date(job.publish_date);
+        const label = months[date.getMonth()];
+        if (monthlyData[label] !== undefined) {
+          monthlyData[label] += 1;
+        }
+      } catch (e) {
+        // ignore invalid dates
+      }
+    });
+
+    const monthlyEvolution = Object.entries(monthlyData).map(([name, value]) => ({ name, value }));
+
+    // Average salary per sector
+    const sectorSalaries: Record<string, { total: number; count: number }> = {};
+    jobs.forEach(job => {
+      if (job.salary_avg) {
+        if (!sectorSalaries[job.sector]) {
+          sectorSalaries[job.sector] = { total: 0, count: 0 };
+        }
+        sectorSalaries[job.sector].total += job.salary_avg;
+        sectorSalaries[job.sector].count += 1;
+      }
+    });
+
+    const salaryBySector = Object.entries(sectorSalaries)
+      .map(([name, data]) => ({ name, value: Math.round(data.total / data.count) }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5);
+
     return {
       totalJobs: jobs.length,
+      avgSalary,
+      salaryBySector,
       dominantSector,
       topCity,
       topSkill,
       radarSkills,
-      sectorDistribution: Object.entries(sectorCounts).map(([name, value]) => ({ name, value })),
+      sectorDistribution: sortedSectorDistribution,
       contractDistribution: Object.entries(contractCounts).map(([name, value]) => ({ name, value })),
       geoStats: Object.entries(geoData).map(([city, data]) => ({ 
         city, 
         count: data.count, 
         coordinates: data.coordinates 
       })),
-      // Simplified evolution for demo if no dates
-      monthlyEvolution: [
-        { name: 'Jan', value: 45 },
-        { name: 'Fév', value: 52 },
-        { name: 'Mar', value: jobs.length }
-      ]
+      monthlyEvolution
     };
   }, [jobs]);
 
