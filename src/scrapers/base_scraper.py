@@ -8,40 +8,65 @@ class BaseScraper:
         self.base_url = base_url
         self.session = requests.Session()
         self.user_agents = [
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Firefox/119.0",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            # Windows Chrome
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+            # MacOS Chrome
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            # Mobile (iPhone)
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Mobile/15E148 Safari/604.1",
+            # Firefox
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0"
         ]
 
     def get_headers(self):
-        return {
-            "User-Agent": random.choice(self.user_agents),
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+        ua = random.choice(self.user_agents)
+        headers = {
+            "User-Agent": ua,
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
             "Accept-Language": "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Accept-Encoding": "gzip, deflate, br",
             "Referer": "https://www.google.com/",
             "Connection": "keep-alive",
-            "Upgrade-Insecure-Requests": "1"
+            "Upgrade-Insecure-Requests": "1",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "same-origin",
+            "Sec-Fetch-User": "?1",
+            "Cache-Control": "max-age=0",
         }
+        # Add Sec-CH-UA for modern browsers
+        if "Chrome" in ua:
+             headers.update({
+                 "sec-ch-ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+                 "sec-ch-ua-mobile": "?0" if "Windows" in ua or "Macintosh" in ua else "?1",
+                 "sec-ch-ua-platform": '"Windows"' if "Windows" in ua else '"macOS"' if "Macintosh" in ua else '"iOS"'
+             })
+        return headers
 
     def get_soup(self, url):
         """Récupère le contenu HTML d'une URL et retourne un objet BeautifulSoup."""
         try:
-            # On attend un peu pour simuler un humain
-            self.sleep(2, 5)
+            # On attend un peu plus pour simuler un humain (plus long au début)
+            delay = random.uniform(3, 7)
+            time.sleep(delay)
             
-            response = self.session.get(url, headers=self.get_headers(), timeout=20)
+            headers = self.get_headers()
+            response = self.session.get(url, headers=headers, timeout=25)
             
             if response.status_code == 403:
-                print(f"ALERTE 403 Forbidden sur {url}. Tentative avec session neuve...")
-                self.session = requests.Session() # Reset session
-                response = self.session.get(url, headers=self.get_headers(), timeout=20)
+                print(f"ALERTE 403 Forbidden sur {url}. Tentative avec session neuve et mobile UA...")
+                self.session = requests.Session() 
+                mobile_ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Mobile/15E148 Safari/604.1"
+                headers["User-Agent"] = mobile_ua
+                headers["Referer"] = "https://m.facebook.com/" # Referer mobile
+                time.sleep(random.uniform(5, 10))
+                response = self.session.get(url, headers=headers, timeout=25)
 
             response.raise_for_status()
-            # Utiliser html.parser au lieu de lxml pour éviter les soucis de build
             return BeautifulSoup(response.text, 'html.parser')
         except Exception as e:
-            print(f"Erreur lors de la requête sur {url}: {e}")
+            print(f"Erreur requête sur {url}: {e}")
             if hasattr(e, 'response') and e.response is not None:
                 print(f"Status: {e.response.status_code}")
             return None

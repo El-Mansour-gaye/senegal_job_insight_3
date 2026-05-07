@@ -26,6 +26,8 @@ def main():
                 "Informatique": "https://www.emploisenegal.com/recherche-jobs-senegal?f%5B0%5D=im_field_offre_secteur%3A12",
                 "Banque / Assurance": "https://www.emploisenegal.com/recherche-jobs-senegal?f%5B0%5D=im_field_offre_secteur%3A7",
                 "Commerce / Vente": "https://www.emploisenegal.com/recherche-jobs-senegal?f%5B0%5D=im_field_offre_secteur%3A10",
+                "Restauration / Hôtellerie": "https://www.emploisenegal.com/recherche-jobs-senegal?f%5B0%5D=im_field_offre_secteur%3A22",
+                "Santé / Social": "https://www.emploisenegal.com/recherche-jobs-senegal?f%5B0%5D=im_field_offre_secteur%3A25",
             }
 
         all_offers = []
