@@ -14,6 +14,27 @@ class DataCleaner:
             'Etranger - Sénégal': 'Étranger',
             'Tout le Sénégal': 'Sénégal (Multi-régions)'
         }
+        # Coordonnées GPS pour les principales villes du Sénégal
+        self.geo_map = {
+            'Dakar': [14.7167, -17.4677],
+            'Thiès': [14.7833, -16.9167],
+            'Saint-Louis': [16.0167, -16.5000],
+            'Ziguinchor': [12.5833, -16.2719],
+            'Diourbel': [14.6500, -16.2333],
+            'Louga': [15.6167, -16.2167],
+            'Kolda': [12.8833, -14.9500],
+            'Matam': [15.6500, -13.2500],
+            'Fatick': [14.3333, -16.4000],
+            'Kaolack': [14.1333, -16.0833],
+            'Kaffrine': [14.1000, -15.5333],
+            'Kédougou': [12.5500, -12.1833],
+            'Sédhiou': [12.7000, -15.5500],
+            'Tamba': [13.7667, -13.6667],
+            'Tambacounda': [13.7667, -13.6667],
+            'Étranger': [0, 0],
+            'International': [0, 0],
+            'Sénégal (Multi-régions)': [14.4974, -14.4524]
+        }
 
     def extract_experience(self, exp_text):
         """Extrait min_exp et max_exp depuis un texte (ex: '2 à 5 ans')."""
@@ -56,12 +77,15 @@ class DataCleaner:
             lambda x: pd.Series(self.extract_experience(x))
         )
 
-        # 4. Standardisation des titres
+        # 4. Ajout des Coordonnées GPS
+        df['coordinates'] = df['location'].apply(lambda x: self.geo_map.get(x, [14.4974, -14.4524]))
+
+        # 5. Standardisation des titres
         df['title'] = df['title'].str.title().str.strip()
 
-        # 5. Nettoyage des compétences (Split " - ")
-        # On garde une colonne 'key_skills_list' pour analyse et 'key_skills' en texte propre
-        df['key_skills'] = df['key_skills'].str.replace(' - ', ', ')
+        # 6. Nettoyage des compétences (Séparateur virgule pour Power BI et Frontend)
+        # On s'assure que le séparateur est uniforme ',' 
+        df['key_skills'] = df['key_skills'].str.replace(' - ', ', ').str.replace(';', ', ')
 
         # Sauvegarde
         df.to_csv(output_path, index=False, encoding='utf-8-sig')

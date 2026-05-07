@@ -66,7 +66,7 @@ export const fetchJobsFromCSV = async (): Promise<JobOffer[]> => {
             min_exp: parseInt(row.min_exp) || 0,
             max_exp: parseInt(row.max_exp) || 0,
             salary_avg: row.salary_avg ? parseFloat(row.salary_avg) : undefined,
-            key_skills: row.key_skills ? row.key_skills.split(' - ') : [],
+            key_skills: row.key_skills ? row.key_skills.split(',').map((s: string) => s.trim()) : [],
             description: row.description || '',
             publish_date: row.publish_date || new Date().toISOString(),
             offer_url: row.offer_url || '#',

@@ -40,7 +40,7 @@ export const Dashboard: React.FC = () => {
     );
   }
 
-  const salaryData = [
+  const salaryChartData = stats.salaryBySector.length > 0 ? stats.salaryBySector : [
     { name: 'Informatique', value: 850000 },
     { name: 'Finance', value: 720000 },
     { name: 'Santé', value: 650000 },
@@ -133,7 +133,7 @@ export const Dashboard: React.FC = () => {
             </div>
             <div className="space-y-8">
               <SectorBarChart data={stats.sectorDistribution} title="Volume par secteur" />
-              <SalaryChart data={salaryData} title="Salaire Moyen par Secteur (CFA)" />
+              <SalaryChart data={salaryChartData} title="Salaire Moyen par Secteur (CFA)" />
             </div>
           </div>
         </>
@@ -158,9 +158,9 @@ export const Dashboard: React.FC = () => {
             </div>
             <KPICard 
               title="Salaire Moyen Estimé" 
-              value="650 000 CFA" 
+              value={`${stats.avgSalary.toLocaleString()} CFA`} 
               icon={DollarSign} 
-              description="Moyenne sur le secteur Informatique"
+              description="Basé sur l'échantillon collecté"
               color="primary"
             />
           </div>
