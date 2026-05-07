@@ -6,15 +6,32 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 export const fetchJobsFromCSV = async (): Promise<JobOffer[]> => {
   try {
-    const csvUrl = API_BASE_URL 
-      ? `${API_BASE_URL}/download/csv` 
-      : '/data/jobs_senegal_processed.csv';
-      
-    console.log(`Fetching data from: ${csvUrl}`);
-    const response = await fetch(csvUrl);
-    if (!response.ok) {
-      throw new Error('CSV not found');
+    // Sur Vercel, on préfère charger le fichier localement s'il existe dans public/data
+    // On essaie d'abord le chemin relatif local
+    const localUrl = '/data/jobs_senegal_processed.csv';
+    const remoteUrl = API_BASE_URL ? `${API_BASE_URL}/download/csv` : null;
+    
+    let response;
+    try {
+      console.log(`Tentative de chargement local : ${localUrl}`);
+      response = await fetch(localUrl);
+      if (!response.ok && remoteUrl) {
+        console.log(`Local inaccessible, tentative remote : ${remoteUrl}`);
+        response = await fetch(remoteUrl);
+      }
+    } catch (e) {
+      if (remoteUrl) {
+        console.log(`Erreur local, tentative remote : ${remoteUrl}`);
+        response = await fetch(remoteUrl);
+      } else {
+        throw e;
+      }
     }
+
+    if (!response || !response.ok) {
+      throw new Error('CSV non trouvé (local et remote)');
+    }
+    
     const csvString = await response.text();
     
     return new Promise((resolve, reject) => {

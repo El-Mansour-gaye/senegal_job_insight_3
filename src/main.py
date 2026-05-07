@@ -26,8 +26,6 @@ def main():
                 "Informatique": "https://www.emploisenegal.com/recherche-jobs-senegal?f%5B0%5D=im_field_offre_secteur%3A12",
                 "Banque / Assurance": "https://www.emploisenegal.com/recherche-jobs-senegal?f%5B0%5D=im_field_offre_secteur%3A7",
                 "Commerce / Vente": "https://www.emploisenegal.com/recherche-jobs-senegal?f%5B0%5D=im_field_offre_secteur%3A10",
-                "Restauration / Hôtellerie": "https://www.emploisenegal.com/recherche-jobs-senegal?f%5B0%5D=im_field_offre_secteur%3A22",
-                "Santé / Social": "https://www.emploisenegal.com/recherche-jobs-senegal?f%5B0%5D=im_field_offre_secteur%3A25",
             }
 
         all_offers = []
@@ -41,7 +39,7 @@ def main():
                 if not offers:
                     break
                 all_offers.extend(offers)
-                scraper.sleep(1, 3) 
+                scraper.sleep(2, 5) 
 
         # Sauvegarde brute
         if all_offers:
@@ -61,8 +59,8 @@ def main():
             analytics = JobAnalytics(final_path)
             analytics.generate_report()
         else:
-            print("\n--- Scraping terminé. Aucun résultat trouvé. ---")
-            print("Veuillez vérifier les sélecteurs CSS dans 'src/scrapers/emploi_senegal.py' ou la structure du site.")
+            print("\n--- Scraping terminé. Aucun résultat trouvé (403 probable). ---")
+            print("Veuillez vérifier les sélecteurs ou la structure du site.")
             
     except Exception as e:
         print(f"ERREUR FATALE DANS LE PIPELINE: {e}")

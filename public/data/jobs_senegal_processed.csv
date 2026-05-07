@@ -1,0 +1,6 @@
+scraped_date,publish_date,title,company,location,contract_type,education_level,experience_level,key_skills,sector,offer_url,source,coordinates,min_exp,max_exp,salary_avg
+2024-05-07,2024-05-06,Développeur Fullstack React/Node,Tech Impact,Dakar,CDI,Bac+5,3-5 ans,React - Node.js - TypeScript - PostgreSQL,Informatique,https://example.com/job1,EmploiSénégal,"[14.7167, -17.4677]",3,5,850000
+2024-05-07,2024-05-05,Comptable Senior,Banque de l'Habitat,Thiès,CDD,Bac+4,Plus de 5 ans,Comptabilité - Audit - Excel - SAGE,Banque / Assurance,https://example.com/job2,EmploiSénégal,"[14.7833, -16.9167]",5,10,650000
+2024-05-07,2024-05-04,Commercial Terrain,Sénégal Distribution,Saint-Louis,CDI,Bac+2,1-3 ans,Vente - Négociation - Permis de conduire,Commerce / Vente,https://example.com/job3,EmploiSénégal,"[16.0167, -16.5000]",1,3,450000
+2024-05-07,2024-05-03,Data Analyst,Insight Corp,Dakar,CDI,Bac+5,3-5 ans,Python - SQL - Power BI - Statistiques,Informatique,https://example.com/job4,EmploiSénégal,"[14.7167, -17.4677]",3,5,950000
+2024-05-07,2024-05-02,Responsable RH,Global Service,Mbour,CDI,Bac+5,Plus de 10 ans,RH - Management - Droit social,Autres,https://example.com/job5,EmploiSénégal,"[14.4167, -16.9667]",10,20,1200000
