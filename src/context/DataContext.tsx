@@ -62,6 +62,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         fullMark: Math.max(...Object.values(skillCounts))
       }));
 
+    // Préparation des données pour la carte (GeoStats)
+    const geoData: Record<string, { count: number; coordinates: [number, number] }> = {};
+    
+    jobs.forEach(job => {
+      if (!geoData[job.location]) {
+        geoData[job.location] = {
+          count: 0,
+          coordinates: job.coordinates || [14.4974, -14.4524]
+        };
+      }
+      geoData[job.location].count += 1;
+    });
+
     return {
       totalJobs: jobs.length,
       dominantSector,
@@ -70,7 +83,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       radarSkills,
       sectorDistribution: Object.entries(sectorCounts).map(([name, value]) => ({ name, value })),
       contractDistribution: Object.entries(contractCounts).map(([name, value]) => ({ name, value })),
-      geoStats: Object.entries(cityCounts).map(([name, value]) => ({ name, value })),
+      geoStats: Object.entries(geoData).map(([city, data]) => ({ 
+        city, 
+        count: data.count, 
+        coordinates: data.coordinates 
+      })),
       // Simplified evolution for demo if no dates
       monthlyEvolution: [
         { name: 'Jan', value: 45 },
