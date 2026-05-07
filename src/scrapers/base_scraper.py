@@ -25,19 +25,22 @@ class BaseScraper:
         """Récupère le contenu HTML d'une URL et retourne un objet BeautifulSoup."""
         try:
             # On attend un peu pour simuler un humain
-            self.sleep(2, 5)
-            response = self.session.get(url, headers=self.headers, timeout=15)
+            self.sleep(1, 3)
+            
+            # Rotation simple d'User-Agent possible ici si besoin
+            response = self.session.get(url, headers=self.headers, timeout=20)
             
             if response.status_code == 403:
-                print(f"Tentative de secours pour 403 sur {url}...")
-                # Parfois, changer le Referer aide
-                self.headers['Referer'] = self.base_url
-                response = self.session.get(url, headers=self.headers, timeout=15)
+                print(f"ALERTE 403 Forbidden sur {url}. Tentative avec une session propre...")
+                self.session = requests.Session() # Reset session
+                response = self.session.get(url, headers=self.headers, timeout=20)
 
             response.raise_for_status()
             return BeautifulSoup(response.content, 'lxml')
         except Exception as e:
             print(f"Erreur lors de la requête sur {url}: {e}")
+            if hasattr(e, 'response') and e.response is not None:
+                print(f"Status: {e.response.status_code}")
             return None
 
     def sleep(self, min_sec=1, max_sec=3):
