@@ -7,7 +7,7 @@ from src.processing.analytics import JobAnalytics
 def main():
     # Configuration des dossiers
     os.makedirs('data/raw', exist_ok=True)
-    os.makedirs('data/processed', exist_ok=True)
+    os.makedirs('public/data', exist_ok=True)
     os.makedirs('reports', exist_ok=True)
 
     # 1. Scraping
@@ -47,7 +47,7 @@ def main():
 
         # 2. Nettoyage
         print("\n--- Lancement du pipeline de nettoyage ---")
-        final_path = 'data/processed/jobs_senegal_processed.csv'
+        final_path = 'public/data/jobs_senegal_processed.csv'
         cleaner = DataCleaner(raw_path)
         cleaner.clean(final_path)
 

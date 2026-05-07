@@ -1,6 +1,10 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib
 import os
+
+# Configuration Headless pour les serveurs (Render, etc.)
+matplotlib.use('Agg')
 
 class JobAnalytics:
     def __init__(self, data_path):
