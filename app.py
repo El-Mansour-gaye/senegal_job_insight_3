@@ -1,13 +1,59 @@
+from fastapi.middleware.cors import CORSMiddleware
 import os
 from fastapi import FastAPI, BackgroundTasks
 from fastapi.responses import FileResponse, JSONResponse
 from src.main import main as run_scraper_pipeline
 import uvicorn
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.interval import IntervalTrigger
+import logging
+
+# Log configuration
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Senegal Job Insights API",
     description="API pour piloter le scraping et l'analyse du marché de l'emploi au Sénégal",
     version="1.0.0"
+)
+
+# Configuration du Scheduler
+scheduler = BackgroundScheduler()
+
+def scheduled_scraping():
+    logger.info("Démarrage du scraping programmé...")
+    try:
+        run_scraper_pipeline()
+        logger.info("Scraping programmé terminé avec succès.")
+    except Exception as e:
+        logger.error(f"Erreur lors du scraping programmé: {e}")
+
+@app.on_event("startup")
+def start_scheduler():
+    # Ajoute la tâche toutes les 24 heures
+    scheduler.add_job(
+        scheduled_scraping,
+        trigger=IntervalTrigger(hours=24),
+        id="job_scraping",
+        name="Scraping quotidien",
+        replace_existing=True
+    )
+    scheduler.start()
+    logger.info("Scheduler démarré.")
+
+@app.on_event("shutdown")
+def stop_scheduler():
+    scheduler.shutdown()
+    logger.info("Scheduler arrêté.")
+
+# Configuration CORS pour autoriser le Frontend (Vercel)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # On pourra restreindre à votre URL Vercel plus tard
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Dossier où sont stockées les données

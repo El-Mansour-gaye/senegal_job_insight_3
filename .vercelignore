@@ -1,0 +1,10 @@
+# Ignorer les fichiers Python et les données brutes lors du déploiement Frontend sur Vercel
+app.py
+requirements.txt
+runtime.txt
+src/scrapers/
+src/processing/
+src/main.py
+data/
+public/data/*.csv
+!public/data/jobs_senegal_processed.csv

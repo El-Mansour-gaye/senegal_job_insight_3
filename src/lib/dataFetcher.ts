@@ -1,9 +1,17 @@
 import Papa from 'papaparse';
 import { JobOffer } from '../types';
 
+// En production, cette URL sera celle de votre service Render (ex: https://senegal-job-insights.onrender.com)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+
 export const fetchJobsFromCSV = async (): Promise<JobOffer[]> => {
   try {
-    const response = await fetch('/data/jobs_senegal_processed.csv');
+    const csvUrl = API_BASE_URL 
+      ? `${API_BASE_URL}/download/csv` 
+      : '/data/jobs_senegal_processed.csv';
+      
+    console.log(`Fetching data from: ${csvUrl}`);
+    const response = await fetch(csvUrl);
     if (!response.ok) {
       throw new Error('CSV not found');
     }
