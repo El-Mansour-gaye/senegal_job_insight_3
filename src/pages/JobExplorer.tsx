@@ -1,9 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { JobCard } from '../components/JobCard';
 import { FilterBar } from '../components/FilterBar';
-import { MOCK_JOBS } from '../data/mockData';
+import { useData } from '../context/DataContext';
+import { Briefcase } from 'lucide-react';
 
 export const JobExplorer: React.FC = () => {
+  const { jobs, isLoading } = useData();
   const [filters, setFilters] = useState({
     search: '',
     sector: 'Tous les secteurs',
@@ -12,7 +14,7 @@ export const JobExplorer: React.FC = () => {
   });
 
   const filteredJobs = useMemo(() => {
-    return MOCK_JOBS.filter(job => {
+    return jobs.filter(job => {
       const matchSearch = job.title.toLowerCase().includes(filters.search.toLowerCase()) || 
                           job.company.toLowerCase().includes(filters.search.toLowerCase());
       const matchSector = filters.sector === 'Tous les secteurs' || job.sector.includes(filters.sector);
@@ -21,7 +23,15 @@ export const JobExplorer: React.FC = () => {
       
       return matchSearch && matchSector && matchCity && matchContract;
     });
-  }, [filters]);
+  }, [filters, jobs]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -48,7 +58,7 @@ export const JobExplorer: React.FC = () => {
         ) : (
           <div className="bg-white p-12 rounded-2xl border border-dashed border-slate-300 text-center space-y-4">
              <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-300">
-               <JobCard job={MOCK_JOBS[0]} /> {/* This is just for the icon, using JobCard component wrongly for demo */}
+                <Briefcase size={32} />
              </div>
              <h3 className="text-lg font-bold text-slate-700">Aucun résultat trouvé</h3>
              <p className="text-slate-500">Essayez de modifier vos filtres ou votre recherche.</p>

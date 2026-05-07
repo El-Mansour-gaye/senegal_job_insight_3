@@ -3,10 +3,20 @@ import { KPICard } from '../components/KPICard';
 import { EvolutionChart, DistributionChart, SectorBarChart, SalaryChart } from '../components/Charts';
 import { MapChart } from '../components/MapChart';
 import { JobsDataTable } from '../components/JobsDataTable';
-import { MOCK_STATS, MOCK_JOBS } from '../data/mockData';
+import { useData } from '../context/DataContext';
 import { Users, Briefcase, MapPin, Zap, TrendingUp, DollarSign } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
+  const { jobs, isLoading, stats } = useData();
+  
+  if (isLoading || !stats) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   const salaryData = [
     { name: 'Informatique', value: 850000 },
     { name: 'Finance', value: 720000 },
@@ -34,7 +44,7 @@ export const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <KPICard 
           title="Total des offres" 
-          value={MOCK_STATS.totalJobs.toLocaleString()} 
+          value={stats.totalJobs.toLocaleString()} 
           icon={Briefcase} 
           trend="12.4%" 
           trendUp={true}
@@ -42,7 +52,7 @@ export const Dashboard: React.FC = () => {
         />
         <KPICard 
           title="Secteur porteur" 
-          value={MOCK_STATS.dominantSector} 
+          value={stats.dominantSector} 
           icon={Zap} 
           trend="8.1%" 
           trendUp={true}
@@ -50,7 +60,7 @@ export const Dashboard: React.FC = () => {
         />
         <KPICard 
           title="Ville active" 
-          value={MOCK_STATS.topCity} 
+          value={stats.topCity} 
           icon={MapPin} 
           trend="3.2%" 
           trendUp={false}
@@ -58,7 +68,7 @@ export const Dashboard: React.FC = () => {
         />
         <KPICard 
           title="Top Compétence" 
-          value={MOCK_STATS.topSkill} 
+          value={stats.topSkill} 
           icon={TrendingUp} 
           color="blue"
         />
@@ -67,14 +77,14 @@ export const Dashboard: React.FC = () => {
       {/* Main Charts & Map */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          <MapChart data={MOCK_STATS.geoStats} title="Répartition Géographique des Offres" />
+          <MapChart data={stats.geoStats} title="Répartition Géographique des Offres" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <EvolutionChart data={MOCK_STATS.monthlyEvolution} title="Évolution des recrutements" />
-            <DistributionChart data={MOCK_STATS.contractDistribution} title="Contrats proposés" />
+            <EvolutionChart data={stats.monthlyEvolution} title="Évolution des recrutements" />
+            <DistributionChart data={stats.contractDistribution} title="Contrats proposés" />
           </div>
         </div>
         <div className="space-y-8">
-          <SectorBarChart data={MOCK_STATS.sectorDistribution} title="Volume par secteur" />
+          <SectorBarChart data={stats.sectorDistribution} title="Volume par secteur" />
           <SalaryChart data={salaryData} title="Salaire Moyen par Secteur (CFA)" />
         </div>
       </div>
@@ -85,7 +95,7 @@ export const Dashboard: React.FC = () => {
           <h3 className="text-xl font-bold text-slate-800">Exploration des données</h3>
           <button className="text-primary font-bold text-sm hover:underline">Exporter (.csv)</button>
         </div>
-        <JobsDataTable data={MOCK_JOBS} />
+        <JobsDataTable data={jobs} />
       </div>
     </div>
   );

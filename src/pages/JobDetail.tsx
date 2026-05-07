@@ -1,24 +1,22 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { 
-  ArrowLeft, 
-  Building2, 
-  MapPin, 
-  Clock, 
-  Calendar, 
-  ExternalLink, 
-  Briefcase, 
-  GraduationCap,
-  ShieldCheck,
-  Share2
-} from 'lucide-react';
-import { MOCK_JOBS } from '../data/mockData';
+import { ArrowLeft, Building2, MapPin, Clock, Calendar, ExternalLink, Briefcase, GraduationCap, ShieldCheck, Share2 } from 'lucide-react';
+import { useData } from '../context/DataContext';
 import { formatDate, cn } from '../lib/utils';
 
 export const JobDetail: React.FC = () => {
   const { id } = useParams();
-  const job = MOCK_JOBS.find(j => j.id === id);
+  const { jobs, isLoading } = useData();
+  const job = jobs.find(j => j.id === id);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   if (!job) {
     return (

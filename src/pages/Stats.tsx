@@ -14,11 +14,20 @@ import {
   PolarAngleAxis, 
   PolarRadiusAxis 
 } from 'recharts';
-import { MOCK_STATS } from '../data/mockData';
+import { useData } from '../context/DataContext';
 import { Brain, Star, TrendingUp, Award } from 'lucide-react';
 import { KPICard } from '../components/KPICard';
 
 export const Stats: React.FC = () => {
+  const { isLoading } = useData();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
   const skillsData = [
     { subject: 'React', A: 120, fullMark: 150 },
     { subject: 'SAGE', A: 98, fullMark: 150 },
