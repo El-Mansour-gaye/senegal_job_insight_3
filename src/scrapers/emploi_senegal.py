@@ -14,22 +14,26 @@ class EmploiSenegalScraper(BaseScraper):
         if not soup:
             return sectors
 
-        # Sélecteur identifié dans image_e7307b.png
-        facet_ul = soup.find('ul', id="facetapi-facet-apachesolrsolr-block-im-field-offre-secteur")
+        # Localisation de la liste des facettes de secteurs
+        # L'ID peut varier légèrement, on cherche donc un bloc contenant 'secteur'
+        facet_ul = soup.find('ul', id=lambda x: x and 'im-field-offre-secteur' in x.lower())
         
         if not facet_ul:
-            print("Avertissement: Bloc de secteurs (facettes) pré-défini non trouvé. Utilisation de l'id alternatif.")
-            facet_ul = soup.find('ul', id=lambda x: x and 'im-field-offre-secteur' in x.lower())
+            print("Avertissement: Bloc de secteurs (facettes) non trouvé. Utilisation d'un sélecteur générique.")
+            # Tentative de secours sur les liens de recherche contenant des paramètres de filtre
+            facet_ul = soup.select_one('.facetapi-facet-im-field-offre-secteur')
 
         if facet_ul:
             links = facet_ul.find_all('a')
             for link in links:
-                name = link.get_text(strip=True).split('(')[0].strip()
+                name = link.get_text(strip=True)
+                # Nettoyage du nom (souvent formaté "Secteur (12)")
+                clean_name = name.split('(')[0].strip()
                 href = link.get('href')
                 if href:
                     if not href.startswith('http'):
                         href = "https://www.emploisenegal.com" + href
-                    sectors[name] = href
+                    sectors[clean_name] = href
         
         print(f"Secteurs détectés : {len(sectors)}")
         return sectors
@@ -116,7 +120,5 @@ class EmploiSenegalScraper(BaseScraper):
             except Exception as e:
                 print(f"Erreur lors de l'extraction d'une card: {e}")
                 continue
-                
-        return offers
                 
         return offers

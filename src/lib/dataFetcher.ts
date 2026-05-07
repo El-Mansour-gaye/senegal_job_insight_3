@@ -44,7 +44,21 @@ export const fetchJobsFromCSV = async (): Promise<JobOffer[]> => {
             title: row.title || 'N/A',
             company: row.company || 'N/A',
             location: row.location || 'Sénégal',
-            coordinates: row.coordinates ? JSON.parse(row.coordinates.replace(/'/g, '"')) : [14.4974, -14.4524],
+            coordinates: (() => {
+              if (!row.coordinates) return [14.4974, -14.4524];
+              try {
+                // Nettoyage des formats type "[14.7, -17.4]" ou "14.7, -17.4"
+                const cleanCoords = row.coordinates.replace(/[\[\]]/g, '').replace(/'/g, '"');
+                const parts = cleanCoords.split(',').map((p: string) => parseFloat(p.trim()));
+                if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+                  return [parts[0], parts[1]] as [number, number];
+                }
+                return [14.4974, -14.4524] as [number, number];
+              } catch (e) {
+                console.warn('Erreur lors du parsing des coordonnées:', row.coordinates);
+                return [14.4974, -14.4524] as [number, number];
+              }
+            })(),
             sector: row.sector || 'N/A',
             contract_type: row.contract_type || 'N/A',
             education_level: row.education_level || 'N/A',

@@ -35,9 +35,9 @@ export const MapChart: React.FC<MapChartProps> = ({ data, title }) => {
           />
           <ZoomControl position="bottomright" />
           
-          {data.map((city, idx) => (
+          {data.filter(city => city.coordinates && Array.isArray(city.coordinates) && city.coordinates.length === 2 && !isNaN(city.coordinates[0]) && !isNaN(city.coordinates[1])).map((city, idx) => (
             <CircleMarker 
-              key={idx}
+              key={`${city.city}-${idx}`}
               center={city.coordinates}
               pathOptions={{ 
                 color: '#0a988b', 
