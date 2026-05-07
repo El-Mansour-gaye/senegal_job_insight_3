@@ -120,8 +120,5 @@ class EmploiSenegalScraper(BaseScraper):
             except Exception as e:
                 print(f"Erreur lors de l'extraction d'une card: {e}")
                 continue
-            except Exception as e:
-                print(f"Erreur sur une offre: {e}")
-                continue
                 
         return offers

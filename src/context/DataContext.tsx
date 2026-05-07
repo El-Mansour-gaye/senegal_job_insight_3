@@ -52,11 +52,22 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const topCity = Object.entries(cityCounts).sort((a,b) => b[1] - a[1])[0]?.[0] || 'Sénégal';
     const topSkill = Object.entries(skillCounts).sort((a,b) => b[1] - a[1])[0]?.[0] || 'N/A';
 
+    // Préparation des données pour le RadarChart (Analyse)
+    const radarSkills = Object.entries(skillCounts)
+      .sort((a,b) => b[1] - a[1])
+      .slice(0, 6)
+      .map(([subject, value]) => ({
+        subject,
+        A: value,
+        fullMark: Math.max(...Object.values(skillCounts))
+      }));
+
     return {
       totalJobs: jobs.length,
       dominantSector,
       topCity,
       topSkill,
+      radarSkills,
       sectorDistribution: Object.entries(sectorCounts).map(([name, value]) => ({ name, value })),
       contractDistribution: Object.entries(contractCounts).map(([name, value]) => ({ name, value })),
       geoStats: Object.entries(cityCounts).map(([name, value]) => ({ name, value })),

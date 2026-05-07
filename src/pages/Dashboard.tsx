@@ -7,12 +7,32 @@ import { useData } from '../context/DataContext';
 import { Users, Briefcase, MapPin, Zap, TrendingUp, DollarSign } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
-  const { jobs, isLoading, stats } = useData();
+  const { jobs, isLoading, stats, error } = useData();
   
-  if (isLoading || !stats) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (error || !stats || jobs.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] bg-white rounded-2xl p-12 text-center shadow-premium">
+        <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6 text-slate-300">
+          <Briefcase size={40} />
+        </div>
+        <h2 className="text-2xl font-bold text-slate-800 mb-2">Aucune donnée disponible</h2>
+        <p className="text-slate-500 max-w-md mb-8">
+          Le fichier de données est vide ou n'a pas encore été généré par le scraper sur Render.
+        </p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-opacity-90 transition-all flex items-center gap-2"
+        >
+          <Zap size={20} /> Actualiser la page
+        </button>
       </div>
     );
   }

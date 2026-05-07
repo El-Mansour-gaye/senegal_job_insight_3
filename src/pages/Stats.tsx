@@ -19,7 +19,7 @@ import { Brain, Star, TrendingUp, Award } from 'lucide-react';
 import { KPICard } from '../components/KPICard';
 
 export const Stats: React.FC = () => {
-  const { isLoading } = useData();
+  const { isLoading, stats } = useData();
 
   if (isLoading) {
     return (
@@ -28,50 +28,48 @@ export const Stats: React.FC = () => {
       </div>
     );
   }
-  const skillsData = [
-    { subject: 'React', A: 120, fullMark: 150 },
-    { subject: 'SAGE', A: 98, fullMark: 150 },
-    { subject: 'Audit', A: 86, fullMark: 150 },
-    { subject: 'Vente', A: 99, fullMark: 150 },
-    { subject: 'SEO', A: 85, fullMark: 150 },
-    { subject: 'Node.js', A: 65, fullMark: 150 },
-  ];
 
-  const topSkillsList = [
-    { name: 'Angular/React', percentage: 85, color: '#0a988b' },
-    { name: 'Gestion de projet (Agile)', percentage: 72, color: '#ff9d17' },
-    { name: 'Big Data / BI', percentage: 64, color: '#3b82f6' },
-    { name: 'Anglais Technique', percentage: 92, color: '#f44a3c' },
-    { name: 'DevOps (Docker/K8s)', percentage: 48, color: '#8b5cf6' },
-  ];
+  if (!stats) {
+    return (
+      <div className="p-8 text-center bg-white rounded-3xl shadow-premium">
+        <p className="text-slate-500">Aucune donnée disponible pour l'analyse.</p>
+      </div>
+    );
+  }
+
+  const topSkillsList = stats.radarSkills.map((s: any, i: number) => ({
+    name: s.subject,
+    percentage: Math.round((s.A / stats.totalJobs) * 100),
+    color: ['#0a988b', '#ff9d17', '#3b82f6', '#f44a3c', '#8b5cf6', '#ec4899'][i % 6]
+  }));
 
   return (
     <div className="space-y-8 animate-fade-in">
       <div>
         <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Analyses Approfondies</h1>
-        <p className="text-slate-500 mt-1">Intelligence artificielle et statistiques sur les compétences du marché.</p>
+        <p className="text-slate-500 mt-1">Intelligence artificielle et statistiques basées sur les offres réelles collectées.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <KPICard 
-          title="Indice de tension" 
-          value="7.8/10" 
+          title="Top Compétence" 
+          value={stats.topSkill} 
           icon={Brain} 
           trend="Haut" 
           trendUp={true}
           color="primary"
         />
         <KPICard 
-          title="Croissance Annuelle" 
-          value="+24%" 
+          title="Total Offres" 
+          value={stats.totalJobs.toString()} 
           icon={TrendingUp} 
-          trend="Stable" 
+          trend="+24%" 
           trendUp={true}
           color="secondary"
         />
         <KPICard 
-          title="Métiers émergents" 
-          value="12" 
+          title="Secteur Leader" 
+          value={stats.dominantSector} 
           icon={Award} 
           color="blue"
         />
@@ -84,16 +82,16 @@ export const Stats: React.FC = () => {
             Top Compétences Demandées
           </h4>
           <div className="space-y-6">
-            {topSkillsList.map((skill) => (
+            {topSkillsList.map((skill: any) => (
               <div key={skill.name} className="space-y-2">
                 <div className="flex justify-between text-sm font-bold text-slate-700">
                   <span>{skill.name}</span>
-                  <span style={{ color: skill.color }}>{skill.percentage}%</span>
+                  <span style={{ color: skill.color }}>{skill.percentage}% des annonces</span>
                 </div>
                 <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
                   <div 
                     className="h-full rounded-full transition-all duration-1000" 
-                    style={{ width: `${skill.percentage}%`, backgroundColor: skill.color }}
+                    style={{ width: `${Math.min(100, skill.percentage * 2)}%`, backgroundColor: skill.color }}
                   ></div>
                 </div>
               </div>
@@ -104,11 +102,11 @@ export const Stats: React.FC = () => {
         <div className="bg-white p-8 rounded-3xl shadow-premium border border-slate-100 h-[500px]">
           <h4 className="text-xl font-bold text-slate-800 mb-6">Profil de Compétences (Radar)</h4>
           <ResponsiveContainer width="100%" height="90%">
-            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={skillsData}>
+            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={stats.radarSkills}>
               <PolarGrid stroke="#f1f5f9" />
               <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 12 }} />
               <Radar
-                name="Volume"
+                name="Fréquence"
                 dataKey="A"
                 stroke="#0a988b"
                 fill="#0a988b"
