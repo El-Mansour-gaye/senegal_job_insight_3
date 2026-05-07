@@ -15,7 +15,7 @@ class BaseScraper:
         try:
             response = requests.get(url, headers=self.headers, timeout=10)
             response.raise_for_status()
-            return BeautifulSoup(response.content, 'lxml')
+            return BeautifulSoup(response.content, 'html.parser')
         except Exception as e:
             print(f"Erreur lors de la requête sur {url}: {e}")
             return None
