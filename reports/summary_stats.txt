@@ -1,13 +1,13 @@
 RÉSUMÉ DE L'ANALYSE DU MARCHÉ DE L'EMPLOI AU SÉNÉGAL
 ==================================================
 
-Total d'offres analysées : 230
+Total d'offres analysées : 232
 
 OFFRES PAR SECTEUR :
 sector
 Informatique, SSII, Internet                              44
-Centres d´appel, hotline, call center                     25
-Marketing, communication, médias                          19
+Centres d´appel, hotline, call center                     26
+Marketing, communication, médias                          20
 Automobile, matériels de transport, réparation            15
 Distribution, vente, commerce de gros                     13
 BTP, construction                                         11
@@ -16,11 +16,11 @@ Location                                                   9
 Agroalimentaire                                            8
 Éducation, formation                                       6
 Transports, logistique, services postaux                   6
-Conseil, audit, comptabilité                               5
 Industrie, production, fabrication, autres                 5
 Santé, pharmacie, hôpitaux, équipements médicaux           5
 Services autres                                            5
 Banque, assurance, finances                                4
+Conseil, audit, comptabilité                               4
 Hôtellerie, restauration                                   4
 Intérim, recrutement                                       4
 Télécom                                                    4
@@ -35,6 +35,7 @@ Equip. électriques, électroniques, optiques, précision     2
 Equipements mécaniques, machines                           2
 Nettoyage, sécurité, surveillance                          2
 Administration publique                                    1
+Édition, imprimerie                                        1
 Espaces verts, forêts, chasse                              1
 Industrie pharmaceutique                                   1
 Luxe, cosmétiques                                          1
@@ -43,12 +44,12 @@ Sport, action culturelle et sociale                        1
 
 TOP 10 COMPÉTENCES :
 key_skills
-Vente            84
-Communication    51
+Vente            86
+Communication    52
 Marketing        48
-Prospection      34
+Prospection      35
 CVS              33
-Négociation      29
+Négociation      30
 Gestion          23
 CRM              23
 Finance          19
@@ -56,7 +57,7 @@ JAVASCRIPT       16
 
 RÉPARTITION GÉOGRAPHIQUE :
 location
-Dakar                    186
+Dakar                    188
 International             21
 Dakar & International     10
 Dakar & Thiès              5
