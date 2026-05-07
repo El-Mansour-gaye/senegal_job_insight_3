@@ -40,13 +40,7 @@ export const Dashboard: React.FC = () => {
     );
   }
 
-  const salaryChartData = stats.salaryBySector.length > 0 ? stats.salaryBySector : [
-    { name: 'Informatique', value: 850000 },
-    { name: 'Finance', value: 720000 },
-    { name: 'Santé', value: 650000 },
-    { name: 'Marketing', value: 580000 },
-    { name: 'Vente', value: 450000 },
-  ];
+  const salaryChartData = stats.salaryBySector;
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -90,34 +84,28 @@ export const Dashboard: React.FC = () => {
               title="Total des offres" 
               value={stats.totalJobs.toLocaleString()} 
               icon={Briefcase} 
-              trend="12.4%" 
-              trendUp={true}
-              description="Basé sur 1245 offres analysées en Mai"
+              description="Offres uniques collectées"
               color="primary"
             />
             <KPICard 
               title="Secteur porteur" 
               value={stats.dominantSector} 
               icon={Zap} 
-              trend="8.1%" 
-              trendUp={true}
-              description="Croissance de la demande IT ce mois-ci"
+              description="Secteur avec le plus gros volume"
               color="secondary"
             />
             <KPICard 
               title="Ville active" 
               value={stats.topCity} 
               icon={MapPin} 
-              trend="3.2%" 
-              trendUp={false}
-              description="Forte concentration urbaine à Dakar"
+              description="Concentration géographique principale"
               color="accent"
             />
             <KPICard 
               title="Top Compétence" 
               value={stats.topSkill} 
               icon={TrendingUp} 
-              description="Compétence la plus recherchée en 2024"
+              description="Compétence la plus demandée"
               color="blue"
             />
           </div>
