@@ -20,7 +20,7 @@ export const Dashboard: React.FC = () => {
     );
   }
 
-  if (error || !stats || jobs.length === 0) {
+  if (error || jobs.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] bg-white rounded-2xl p-12 text-center shadow-premium">
         <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6 text-slate-300">
@@ -28,14 +28,16 @@ export const Dashboard: React.FC = () => {
         </div>
         <h2 className="text-2xl font-bold text-slate-800 mb-2">Aucune donnée disponible</h2>
         <p className="text-slate-500 max-w-md mb-8">
-          Le fichier de données est vide ou n'a pas encore été généré par le scraper sur Render.
+          {error || "Le fichier de données est vide ou n'a pas encore été généré par le scraper sur Render."}
         </p>
-        <button 
-          onClick={() => window.location.reload()}
-          className="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-opacity-90 transition-all flex items-center gap-2"
-        >
-          <Zap size={20} /> Actualiser la page
-        </button>
+        <div className="flex gap-4">
+          <button 
+            onClick={() => window.location.reload()}
+            className="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-opacity-90 transition-all flex items-center gap-2"
+          >
+            <Zap size={20} /> Actualiser
+          </button>
+        </div>
       </div>
     );
   }
