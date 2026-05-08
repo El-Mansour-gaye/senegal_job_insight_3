@@ -20,7 +20,7 @@ export const Dashboard: React.FC = () => {
     );
   }
 
-  if (error || !stats || jobs.length === 0) {
+  if (error || jobs.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] bg-white rounded-2xl p-12 text-center shadow-premium">
         <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6 text-slate-300">
@@ -28,25 +28,21 @@ export const Dashboard: React.FC = () => {
         </div>
         <h2 className="text-2xl font-bold text-slate-800 mb-2">Aucune donnée disponible</h2>
         <p className="text-slate-500 max-w-md mb-8">
-          Le fichier de données est vide ou n'a pas encore été généré par le scraper sur Render.
+          {error || "Le fichier de données est vide ou n'a pas encore été généré par le scraper sur Render."}
         </p>
-        <button 
-          onClick={() => window.location.reload()}
-          className="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-opacity-90 transition-all flex items-center gap-2"
-        >
-          <Zap size={20} /> Actualiser la page
-        </button>
+        <div className="flex gap-4">
+          <button 
+            onClick={() => window.location.reload()}
+            className="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-opacity-90 transition-all flex items-center gap-2"
+          >
+            <Zap size={20} /> Actualiser
+          </button>
+        </div>
       </div>
     );
   }
 
-  const salaryChartData = stats.salaryBySector.length > 0 ? stats.salaryBySector : [
-    { name: 'Informatique', value: 850000 },
-    { name: 'Finance', value: 720000 },
-    { name: 'Santé', value: 650000 },
-    { name: 'Marketing', value: 580000 },
-    { name: 'Vente', value: 450000 },
-  ];
+  const salaryChartData = stats.salaryBySector;
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -90,34 +86,28 @@ export const Dashboard: React.FC = () => {
               title="Total des offres" 
               value={stats.totalJobs.toLocaleString()} 
               icon={Briefcase} 
-              trend="12.4%" 
-              trendUp={true}
-              description="Basé sur 1245 offres analysées en Mai"
+              description="Offres uniques collectées"
               color="primary"
             />
             <KPICard 
               title="Secteur porteur" 
               value={stats.dominantSector} 
               icon={Zap} 
-              trend="8.1%" 
-              trendUp={true}
-              description="Croissance de la demande IT ce mois-ci"
+              description="Secteur avec le plus gros volume"
               color="secondary"
             />
             <KPICard 
               title="Ville active" 
               value={stats.topCity} 
               icon={MapPin} 
-              trend="3.2%" 
-              trendUp={false}
-              description="Forte concentration urbaine à Dakar"
+              description="Concentration géographique principale"
               color="accent"
             />
             <KPICard 
               title="Top Compétence" 
               value={stats.topSkill} 
               icon={TrendingUp} 
-              description="Compétence la plus recherchée en 2024"
+              description="Compétence la plus demandée"
               color="blue"
             />
           </div>

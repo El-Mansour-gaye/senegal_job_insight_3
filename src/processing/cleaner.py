@@ -77,7 +77,11 @@ class DataCleaner:
             lambda x: pd.Series(self.extract_experience(x))
         )
 
-        # 4. Ajout des Coordonnées GPS
+        # 4. Ajout des Coordonnées GPS (colonnes séparées pour Power BI)
+        df['latitude'] = df['location'].apply(lambda x: self.geo_map.get(x, [14.4974, -14.4524])[0])
+        df['longitude'] = df['location'].apply(lambda x: self.geo_map.get(x, [14.4974, -14.4524])[1])
+        
+        # On garde 'coordinates' pour la compatibilité avec le frontend actuel
         df['coordinates'] = df['location'].apply(lambda x: self.geo_map.get(x, [14.4974, -14.4524]))
 
         # 5. Standardisation des titres

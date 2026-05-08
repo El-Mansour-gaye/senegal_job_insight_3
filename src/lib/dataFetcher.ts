@@ -7,21 +7,25 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 export const fetchJobsFromCSV = async (): Promise<JobOffer[]> => {
   try {
     // Sur Vercel, on préfère charger le fichier localement s'il existe dans public/data
-    // On essaie d'abord le chemin relatif local
-    const localUrl = '/data/jobs_senegal_processed.csv';
-    const remoteUrl = API_BASE_URL ? `${API_BASE_URL}/download/csv` : null;
+    // On ajoute un timestamp pour éviter le cache navigateur
+    const localUrl = `/data/jobs_senegal_processed.csv?t=${Date.now()}`;
+    const remoteUrl = API_BASE_URL ? `${API_BASE_URL}/download/csv?t=${Date.now()}` : null;
     
     let response;
     try {
-      console.log(`Tentative de chargement local : ${localUrl}`);
+      console.log(`[DataFetcher] Tentative de chargement : ${localUrl}`);
       response = await fetch(localUrl);
-      if (!response.ok && remoteUrl) {
-        console.log(`Local inaccessible, tentative remote : ${remoteUrl}`);
-        response = await fetch(remoteUrl);
+      
+      if (!response.ok) {
+        console.warn(`[DataFetcher] Local inaccessible (Status: ${response.status}).`);
+        if (remoteUrl) {
+          console.log(`[DataFetcher] Tentative remote : ${remoteUrl}`);
+          response = await fetch(remoteUrl);
+        }
       }
     } catch (e) {
+      console.error(`[DataFetcher] Erreur lors du fetch local:`, e);
       if (remoteUrl) {
-        console.log(`Erreur local, tentative remote : ${remoteUrl}`);
         response = await fetch(remoteUrl);
       } else {
         throw e;
@@ -29,10 +33,21 @@ export const fetchJobsFromCSV = async (): Promise<JobOffer[]> => {
     }
 
     if (!response || !response.ok) {
-      throw new Error('CSV non trouvé (local et remote)');
+      const errorMsg = `CSV non trouvé. Status: ${response?.status || 'N/A'}`;
+      console.error(`[DataFetcher] ${errorMsg}`);
+      throw new Error(errorMsg);
     }
     
     const csvString = await response.text();
+    console.log(`[DataFetcher] CSV chargé avec succès (${csvString.length} octets).`);
+    
+    // Debug: log first 100 characters to check if it's HTML or CSV
+    console.log(`[DataFetcher] Début du contenu: ${csvString.substring(0, 100)}`);
+
+    if (csvString.trim().startsWith('<!doctype html>') || csvString.trim().startsWith('<html')) {
+      console.error('[DataFetcher] Erreur : Le serveur a renvoyé du HTML au lieu d\'un CSV. Le fichier est probablement manquant (404 fallback).');
+      throw new Error('Le fichier de données est introuvable sur le serveur (404).');
+    }
     
     return new Promise((resolve, reject) => {
       Papa.parse(csvString, {
@@ -45,6 +60,9 @@ export const fetchJobsFromCSV = async (): Promise<JobOffer[]> => {
             company: row.company || 'N/A',
             location: row.location || 'Sénégal',
             coordinates: (() => {
+              if (row.latitude && row.longitude) {
+                return [parseFloat(row.latitude), parseFloat(row.longitude)] as [number, number];
+              }
               if (!row.coordinates) return [14.4974, -14.4524];
               try {
                 // Nettoyage des formats type "[14.7, -17.4]" ou "14.7, -17.4"

@@ -21,8 +21,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const data = await fetchJobsFromCSV();
         setJobs(data);
-      } catch (err) {
-        setError("Erreur lors de la récupération des données");
+      } catch (err: any) {
+        setError(err.message || "Erreur lors de la récupération des données");
         console.error(err);
       } finally {
         setIsLoading(false);
@@ -56,7 +56,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const jobsWithSalary = jobs.filter(j => j.salary_avg !== undefined);
     const avgSalary = jobsWithSalary.length > 0 
       ? Math.round(jobsWithSalary.reduce((acc, curr) => acc + (curr.salary_avg || 0), 0) / jobsWithSalary.length)
-      : 650000; // Fallback estimate
+      : 0; // No fallback estimate 
 
     // Sort sector distribution for charts
     const sortedSectorDistribution = Object.entries(sectorCounts)
