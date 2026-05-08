@@ -16,7 +16,17 @@ export const fetchJobsFromCSV = async (): Promise<JobOffer[]> => {
       console.log(`[DataFetcher] Tentative de chargement : ${localUrl}`);
       response = await fetch(localUrl);
       
-      if (!response.ok) {
+      // Si on reçoit du HTML au lieu d'un CSV (cas du fallback 404 de Vercel)
+      const contentType = response.headers.get('content-type');
+      if (response.ok && contentType && contentType.includes('text/html')) {
+        console.warn(`[DataFetcher] Le fichier local a renvoyé du HTML. On bascule sur le remote.`);
+        if (remoteUrl) {
+          console.log(`[DataFetcher] Tentative remote : ${remoteUrl}`);
+          response = await fetch(remoteUrl);
+        } else {
+            throw new Error('Local file is HTML (404 fallback) and no remote URL defined.');
+        }
+      } else if (!response.ok) {
         console.warn(`[DataFetcher] Local inaccessible (Status: ${response.status}).`);
         if (remoteUrl) {
           console.log(`[DataFetcher] Tentative remote : ${remoteUrl}`);
@@ -24,8 +34,9 @@ export const fetchJobsFromCSV = async (): Promise<JobOffer[]> => {
         }
       }
     } catch (e) {
-      console.error(`[DataFetcher] Erreur lors du fetch local:`, e);
-      if (remoteUrl) {
+      console.error(`[DataFetcher] Erreur lors du fetch:`, e);
+      if (remoteUrl && (!response || !response.ok)) {
+        console.log(`[DataFetcher] Tentative de secours sur remote après erreur catchée.`);
         response = await fetch(remoteUrl);
       } else {
         throw e;

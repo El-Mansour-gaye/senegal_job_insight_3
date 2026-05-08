@@ -6,5 +6,5 @@ src/scrapers/
 src/processing/
 src/main.py
 data/
-public/data/*.csv
-!public/data/jobs_senegal_processed.csv
+reports/
+node_modules/
