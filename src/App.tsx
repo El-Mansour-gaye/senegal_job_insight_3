@@ -5,7 +5,6 @@ import { Sidebar, Header } from './components/Navigation';
 import { Dashboard } from './pages/Dashboard';
 import { JobExplorer } from './pages/JobExplorer';
 import { JobDetail } from './pages/JobDetail';
-import { Stats } from './pages/Stats';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
@@ -30,7 +29,6 @@ export default function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/jobs" element={<JobExplorer />} />
             <Route path="/jobs/:id" element={<JobDetail />} />
-            <Route path="/stats" element={<Stats />} />
             <Route path="/settings" element={<div className="p-8 text-center bg-white rounded-2xl shadow-premium">Page en cours de développement...</div>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
