@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 class BaseScraper:
     def __init__(self, base_url):
         self.base_url = base_url
+        self.session = requests.Session()
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
@@ -26,15 +27,13 @@ class BaseScraper:
             # Petit délai aléatoire avant la requête pour paraître plus humain
             time.sleep(random.uniform(1, 3))
 
-            # Utilisation d'une session pour maintenir les cookies
-            session = requests.Session()
-            response = session.get(url, headers=self.headers, timeout=15)
+            response = self.session.get(url, headers=self.headers, timeout=15)
 
             if response.status_code == 403:
                 print(f"Tentative de contournement du 403 pour {url}...")
                 # Essayer un User-Agent différent si 403
                 self.headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
-                response = session.get(url, headers=self.headers, timeout=15)
+                response = self.session.get(url, headers=self.headers, timeout=15)
 
             response.raise_for_status()
             return BeautifulSoup(response.content, 'html.parser')

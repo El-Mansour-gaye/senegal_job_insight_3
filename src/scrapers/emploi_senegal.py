@@ -88,21 +88,21 @@ class EmploiSenegalScraper(BaseScraper):
                 # On cherche tous les <li> ou simplement les zones de texte pour identifier les labels
                 details_list = card.find_all('li')
                 for li in details_list:
-                    text = li.get_text(separator=" ", strip=True)
+                    text = li.get_text(separator=" ", strip=True).lower()
                     strong_val = li.find('strong')
                     val = strong_val.get_text(strip=True) if strong_val else ""
                     
                     if not val: continue
 
-                    if "Région de :" in text:
+                    if "région de" in text:
                         location = val
-                    elif "Contrat proposé :" in text:
+                    elif "contrat proposé" in text:
                         contract_type = val
-                    elif "Niveau d'études requis :" in text:
+                    elif "niveau d" in text and "études" in text:
                         edu_level = val
-                    elif "Niveau d'expérience :" in text:
+                    elif "niveau d'expérience" in text or "niveau d´expérience" in text:
                         exp_level = val
-                    elif "Compétences clés :" in text:
+                    elif "compétences clés" in text:
                         key_skills = val
 
                 offers.append({
