@@ -1,19 +1,19 @@
 RÉSUMÉ DE L'ANALYSE DU MARCHÉ DE L'EMPLOI AU SÉNÉGAL
 ==================================================
 
-Total d'offres analysées : 232
+Total d'offres analysées : 231
 
 OFFRES PAR SECTEUR :
 sector
 Informatique, SSII, Internet                              44
 Centres d´appel, hotline, call center                     26
-Marketing, communication, médias                          20
+Marketing, communication, médias                          19
 Automobile, matériels de transport, réparation            15
 Distribution, vente, commerce de gros                     13
 BTP, construction                                         11
+Agroalimentaire                                           10
 Agriculture, pêche, aquaculture                            9
 Location                                                   9
-Agroalimentaire                                            8
 Éducation, formation                                       6
 Transports, logistique, services postaux                   6
 Industrie, production, fabrication, autres                 5
@@ -22,17 +22,17 @@ Services autres                                            5
 Banque, assurance, finances                                4
 Conseil, audit, comptabilité                               4
 Hôtellerie, restauration                                   4
-Intérim, recrutement                                       4
 Télécom                                                    4
+Activités associatives                                     3
 Chimie, pétrochimie, matières premières, mines             3
-Immobilier, architecture, urbanisme                        3
 Tourisme, loisirs                                          3
-Activités associatives                                     2
 Ameublement, décoration                                    2
 Electricité, eau, gaz, nucléaire, énergie                  2
 Environnement, recyclage                                   2
 Equip. électriques, électroniques, optiques, précision     2
 Equipements mécaniques, machines                           2
+Immobilier, architecture, urbanisme                        2
+Intérim, recrutement                                       2
 Nettoyage, sécurité, surveillance                          2
 Administration publique                                    1
 Édition, imprimerie                                        1
@@ -45,21 +45,21 @@ Sport, action culturelle et sociale                        1
 TOP 10 COMPÉTENCES :
 key_skills
 Vente            86
-Communication    52
-Marketing        48
-Prospection      35
+Communication    51
+Marketing        47
+Prospection      34
 CVS              33
 Négociation      30
-Gestion          23
+Gestion          24
 CRM              23
-Finance          19
-JAVASCRIPT       16
+Finance          20
+Comptabilité     16
 
 RÉPARTITION GÉOGRAPHIQUE :
 location
-Dakar                    188
-International             21
-Dakar & International     10
+Dakar                    189
+International             18
+Dakar & International     11
 Dakar & Thiès              5
 Thiès                      3
 Diourbel                   2
