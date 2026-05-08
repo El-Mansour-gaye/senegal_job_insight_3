@@ -48,7 +48,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
     });
 
-    const dominantSector = Object.entries(sectorCounts).sort((a,b) => b[1] - a[1])[0]?.[0] || 'N/A';
+    const sortedSectors = Object.entries(sectorCounts).sort((a,b) => b[1] - a[1]);
+    const dominantSector = sortedSectors[0]?.[0] || 'N/A';
     const topCity = Object.entries(cityCounts).sort((a,b) => b[1] - a[1])[0]?.[0] || 'Sénégal';
     const topSkill = Object.entries(skillCounts).sort((a,b) => b[1] - a[1])[0]?.[0] || 'N/A';
 
@@ -56,14 +57,20 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const jobsWithSalary = jobs.filter(j => j.salary_avg !== undefined);
     const avgSalary = jobsWithSalary.length > 0 
       ? Math.round(jobsWithSalary.reduce((acc, curr) => acc + (curr.salary_avg || 0), 0) / jobsWithSalary.length)
-      : 0; // No fallback estimate 
+      : 0;
 
     // Sort sector distribution for charts
     const sortedSectorDistribution = Object.entries(sectorCounts)
       .sort((a, b) => b[1] - a[1])
       .map(([name, value]) => ({ name, value }));
 
-    // Préparation des données pour le RadarChart (Analyse)
+    // Top 10 skills for analysis
+    const top10Skills = Object.entries(skillCounts)
+      .sort((a,b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([name, value]) => ({ name, value }));
+
+    // Préparation des données pour le RadarChart (Analyse) - Top 6 pour lisibilité radar
     const radarSkills = Object.entries(skillCounts)
       .sort((a,b) => b[1] - a[1])
       .slice(0, 6)
@@ -86,31 +93,40 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       geoData[job.location].count += 1;
     });
 
-    // Compute monthly evolution from publish_date
+    // Compute monthly evolution and growth
     const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
     const monthlyData: Record<string, number> = {};
-    
-    // Initialize current and past 5 months with 0
     const now = new Date();
+
+    // Use last 6 months
+    const last6MonthsLabels: string[] = [];
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const label = months[d.getMonth()];
+      const label = `${months[d.getMonth()]} ${d.getFullYear() % 100}`;
       monthlyData[label] = 0;
+      last6MonthsLabels.push(label);
     }
 
     jobs.forEach(job => {
       try {
         const date = new Date(job.publish_date);
-        const label = months[date.getMonth()];
+        if (isNaN(date.getTime())) return;
+
+        const label = `${months[date.getMonth()]} ${date.getFullYear() % 100}`;
         if (monthlyData[label] !== undefined) {
           monthlyData[label] += 1;
         }
-      } catch (e) {
-        // ignore invalid dates
-      }
+      } catch (e) {}
     });
 
-    const monthlyEvolution = Object.entries(monthlyData).map(([name, value]) => ({ name, value }));
+    const monthlyEvolution = last6MonthsLabels.map(label => ({ name: label, value: monthlyData[label] }));
+
+    // Calculate growth (latest vs previous month)
+    const latestMonthVal = monthlyEvolution[monthlyEvolution.length - 1].value;
+    const prevMonthVal = monthlyEvolution[monthlyEvolution.length - 2].value;
+    const monthlyGrowth = prevMonthVal > 0
+      ? Math.round(((latestMonthVal - prevMonthVal) / prevMonthVal) * 100)
+      : 0;
 
     // Average salary per sector
     const sectorSalaries: Record<string, { total: number; count: number }> = {};
@@ -136,6 +152,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       dominantSector,
       topCity,
       topSkill,
+      top10Skills,
       radarSkills,
       sectorDistribution: sortedSectorDistribution,
       contractDistribution: Object.entries(contractCounts).map(([name, value]) => ({ name, value })),
@@ -144,7 +161,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         count: data.count, 
         coordinates: data.coordinates 
       })),
-      monthlyEvolution
+      monthlyEvolution,
+      monthlyGrowth
     };
   }, [jobs]);
 

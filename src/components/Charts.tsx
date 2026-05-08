@@ -34,7 +34,7 @@ export const EvolutionChart: React.FC<ChartProps> = ({ data, title }) => {
           </defs>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
           <XAxis 
-            dataKey="month" 
+            dataKey="name"
             axisLine={false} 
             tickLine={false} 
             tick={{ fill: '#64748b', fontSize: 12 }} 
@@ -95,10 +95,10 @@ export const DistributionChart: React.FC<ChartProps> = ({ data, title }) => {
 
 export const SectorBarChart: React.FC<ChartProps> = ({ data, title }) => {
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-premium border border-slate-100 h-[400px]">
+    <div className="bg-white p-6 rounded-2xl shadow-premium border border-slate-100 h-[550px]">
       <h4 className="text-lg font-bold text-slate-800 mb-6">{title}</h4>
-      <ResponsiveContainer width="100%" height="85%">
-        <BarChart data={data} layout="vertical" margin={{ left: 20 }}>
+      <ResponsiveContainer width="100%" height="90%">
+        <BarChart data={data.slice(0, 15)} layout="vertical" margin={{ left: 30, right: 30 }}>
           <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
           <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
           <YAxis 
@@ -106,14 +106,18 @@ export const SectorBarChart: React.FC<ChartProps> = ({ data, title }) => {
             type="category" 
             axisLine={false} 
             tickLine={false} 
-            tick={{ fill: '#64748b', fontSize: 11 }}
-            width={100}
+            tick={{ fill: '#64748b', fontSize: 10 }}
+            width={120}
           />
           <Tooltip 
             cursor={{ fill: '#f1f5f9' }}
             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
           />
-          <Bar dataKey="value" fill="#0a988b" radius={[0, 4, 4, 0]} barSize={20} />
+          <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={15}>
+            {data.map((_, index) => (
+              <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#0a988b' : '#ff9d17'} />
+            ))}
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -127,13 +131,22 @@ export const SalaryChart: React.FC<ChartProps> = ({ data, title }) => {
       <ResponsiveContainer width="100%" height="85%">
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
+          <XAxis
+            dataKey="name"
+            axisLine={false}
+            tickLine={false}
+            tick={{ fontSize: 10, fill: '#64748b' }}
+          />
           <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
           <Tooltip 
-             formatter={(value: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(value)}
+             formatter={(value: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(value)}
              contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
           />
-          <Bar dataKey="value" fill="#ff9d17" radius={[4, 4, 0, 0]} barSize={40} />
+          <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={40}>
+             {data.map((_, index) => (
+              <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#ff9d17' : '#f44a3c'} />
+            ))}
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
     </div>
