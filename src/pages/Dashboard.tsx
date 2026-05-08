@@ -185,7 +185,8 @@ export const Dashboard: React.FC = () => {
         coordinates: data.coordinates
       })),
       monthlyEvolution,
-      monthlyGrowth: filteredMonthlyGrowth
+      monthlyGrowth: filteredMonthlyGrowth,
+      salaryBySector
     };
   }, [filteredJobs, globalStats]);
 
@@ -219,13 +220,13 @@ export const Dashboard: React.FC = () => {
     );
   }
 
-  const salaryChartData = dashboardStats.salaryBySector;
-
   const sectors = ['Tous les secteurs', ...Array.from(new Set(jobs.map(j => j.sector)))].sort();
   const cities = ['Toutes les villes', ...Array.from(new Set(jobs.map(j => j.location)))].sort();
   const contracts = ['Tous les contrats', ...Array.from(new Set(jobs.map(j => j.contract_type)))].sort();
 
   if (!dashboardStats) return <div>Pas de données.</div>;
+
+  const salaryChartData = dashboardStats.salaryBySector;
 
   return (
     <div className="space-y-8 animate-fade-in" id="dashboard-content">

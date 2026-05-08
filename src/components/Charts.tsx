@@ -21,6 +21,8 @@ interface ChartProps {
 }
 
 export const EvolutionChart: React.FC<ChartProps> = ({ data, title }) => {
+  if (!data || data.length === 0) return null;
+
   return (
     <div className="bg-white p-6 rounded-2xl shadow-premium border border-slate-100 h-[400px]">
       <h4 className="text-lg font-bold text-slate-800 mb-6">{title}</h4>
@@ -65,6 +67,8 @@ export const EvolutionChart: React.FC<ChartProps> = ({ data, title }) => {
 export const DistributionChart: React.FC<ChartProps> = ({ data, title }) => {
   const COLORS = ['#0a988b', '#ff9d17', '#f44a3c', '#3b82f6', '#8b5cf6', '#ec4899'];
 
+  if (!data || data.length === 0) return null;
+
   return (
     <div className="bg-white p-6 rounded-2xl shadow-premium border border-slate-100 h-[400px]">
       <h4 className="text-lg font-bold text-slate-800 mb-6">{title}</h4>
@@ -79,7 +83,7 @@ export const DistributionChart: React.FC<ChartProps> = ({ data, title }) => {
             paddingAngle={5}
             dataKey="value"
           >
-            {data.map((_, index) => (
+            {data?.map((_, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
@@ -94,11 +98,13 @@ export const DistributionChart: React.FC<ChartProps> = ({ data, title }) => {
 };
 
 export const SectorBarChart: React.FC<ChartProps> = ({ data, title }) => {
+  if (!data || data.length === 0) return null;
+
   return (
     <div className="bg-white p-6 rounded-2xl shadow-premium border border-slate-100 h-[550px]">
       <h4 className="text-lg font-bold text-slate-800 mb-6">{title}</h4>
       <ResponsiveContainer width="100%" height="90%">
-        <BarChart data={data.slice(0, 15)} layout="vertical" margin={{ left: 30, right: 30 }}>
+        <BarChart data={data?.slice(0, 15)} layout="vertical" margin={{ left: 30, right: 30 }}>
           <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
           <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
           <YAxis 
@@ -114,7 +120,7 @@ export const SectorBarChart: React.FC<ChartProps> = ({ data, title }) => {
             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
           />
           <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={15}>
-            {data.map((_, index) => (
+            {data?.slice(0, 15).map((_, index) => (
               <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#0a988b' : '#ff9d17'} />
             ))}
           </Bar>
@@ -125,6 +131,8 @@ export const SectorBarChart: React.FC<ChartProps> = ({ data, title }) => {
 };
 
 export const SalaryChart: React.FC<ChartProps> = ({ data, title }) => {
+  if (!data || data.length === 0) return null;
+
   return (
     <div className="bg-white p-6 rounded-2xl shadow-premium border border-slate-100 h-[400px]">
       <h4 className="text-lg font-bold text-slate-800 mb-6">{title}</h4>
@@ -143,7 +151,7 @@ export const SalaryChart: React.FC<ChartProps> = ({ data, title }) => {
              contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
           />
           <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={40}>
-             {data.map((_, index) => (
+             {data?.map((_, index) => (
               <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#ff9d17' : '#f44a3c'} />
             ))}
           </Bar>
