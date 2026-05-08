@@ -78,7 +78,7 @@ async def trigger_scrape(background_tasks: BackgroundTasks):
     background_tasks.add_task(run_scraper_pipeline)
     return {"message": "Le processus de scraping et de nettoyage a été lancé en arrière-plan."}
 
-@app.get("/status")
+@app.api_route("/status", methods=["GET", "POST"])
 def get_status():
     """Vérifie si les données sont prêtes."""
     if os.path.exists(PROCESSED_FILE):
