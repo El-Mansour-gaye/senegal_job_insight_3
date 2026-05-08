@@ -92,19 +92,30 @@ class DataCleaner:
         return min_edu[0], min_edu[1]
 
     def clean_title(self, title):
-        """Nettoie le titre du poste."""
+        """Nettoie le titre du poste de manière agressive."""
         if pd.isna(title):
             return "N/A"
 
-        # Supprime H/F, (M/F), etc.
+        # 1. Supprime H/F, (M/F) et tout ce qui suit (souvent le lieu)
         title = re.sub(r'\s*[\(\[]?h/f[\)\]]?.*', '', title, flags=re.IGNORECASE)
         title = re.sub(r'\s*[\(\[]?m/f[\)\]]?.*', '', title, flags=re.IGNORECASE)
 
-        # Supprime les suffixes de ville courants
-        title = re.sub(r'\s*-\s*dakar.*', '', title, flags=re.IGNORECASE)
-        title = re.sub(r'\s*-\s*sénégal.*', '', title, flags=re.IGNORECASE)
+        # 2. Split par les séparateurs classiques (tiret, pipe, etc.) et prend la première partie
+        # On cherche un séparateur entouré d'espaces pour éviter de couper des mots composés
+        parts = re.split(r'\s+[\-\–\—\|]\s+', title)
+        title = parts[0]
 
-        return title.strip().title()
+        # 3. Nettoyer les (e), (fe), (h/f) résiduels collés aux mots
+        title = re.sub(r'\(f/h\)', '', title, flags=re.IGNORECASE)
+        title = re.sub(r'\(h/f\)', '', title, flags=re.IGNORECASE)
+        title = re.sub(r'\(fe\)', '', title, flags=re.IGNORECASE)
+        title = re.sub(r'\(e\)', '', title, flags=re.IGNORECASE)
+        title = re.sub(r'\(h\)', '', title, flags=re.IGNORECASE)
+
+        # 4. Suppression des doubles espaces et strip
+        title = re.sub(r'\s+', ' ', title).strip()
+
+        return title.title()
 
     def clean_location(self, loc_text):
         """Normalise la localisation."""
