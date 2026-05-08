@@ -19,9 +19,11 @@ class EmploiSenegalScraper(BaseScraper):
         facet_ul = soup.find('ul', id=lambda x: x and 'im-field-offre-secteur' in x.lower())
         
         if not facet_ul:
-            print("Avertissement: Bloc de secteurs (facettes) non trouvé. Utilisation d'un sélecteur générique.")
             # Tentative de secours sur les liens de recherche contenant des paramètres de filtre
             facet_ul = soup.select_one('.facetapi-facet-im-field-offre-secteur')
+
+        if not facet_ul:
+             print("Avertissement: Bloc de secteurs (facettes) non trouvé.")
 
         if facet_ul:
             links = facet_ul.find_all('a')
