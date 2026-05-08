@@ -20,8 +20,12 @@ def test_education():
 def test_title():
     cleaner = DataCleaner(None)
     assert cleaner.clean_title("Commercial H/F - Dakar") == "Commercial"
+    assert cleaner.clean_title("Chef(fe) de culture - Keur Momar Sarr") == "Chef De Culture"
+    assert cleaner.clean_title("Commercial(e) Terrain - Mbour") == "Commercial Terrain"
+    assert cleaner.clean_title("Directeur Général - Rufisque") == "Directeur Général"
+    assert cleaner.clean_title("Business Developer | Vente") == "Business Developer"
     assert cleaner.clean_title("Ingénieur (M/F)") == "Ingénieur"
-    assert cleaner.clean_title("Manager - Sénégal") == "Manager"
+    assert cleaner.clean_title("Manager – Sénégal") == "Manager"
     print("✓ test_title passed")
 
 def test_location():
