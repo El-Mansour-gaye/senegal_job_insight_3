@@ -41,21 +41,21 @@ export const KPICard: React.FC<KPICardProps> = ({ title, value, icon: Icon, tren
             <h3 className="text-3xl font-black text-slate-800 tracking-tight leading-none">{value}</h3>
             {trend && (
               <span className={cn(
-                "px-2 py-1 rounded-lg text-[10px] font-black inline-flex items-center gap-0.5 shadow-sm border",
+                "px-2 py-1 rounded-full text-[10px] font-black inline-flex items-center gap-0.5 shadow-sm border",
                 trendUp 
-                  ? "bg-emerald-50 text-emerald-600 border-emerald-100" 
-                  : "bg-rose-50 text-rose-600 border-rose-100"
+                  ? "bg-emerald-500 text-white border-emerald-400"
+                  : "bg-accent text-white border-accent"
               )}>
                 {trendUp ? '↑' : '↓'} {trend}
               </span>
             )}
           </div>
           
-          <div className={cn(
-            "mt-2 h-4 overflow-hidden transition-all duration-500",
-            isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
-          )}>
-            <p className="text-[11px] text-slate-400 font-medium whitespace-nowrap">
+          <div className="mt-2 h-4 overflow-hidden transition-all duration-500">
+            <p className={cn(
+              "text-[11px] font-medium transition-all duration-500",
+              isHovered ? "text-primary translate-y-0 opacity-100" : "text-slate-400 translate-y-2 opacity-0"
+            )}>
               {description || "Actualisé en temps réel"}
             </p>
           </div>
