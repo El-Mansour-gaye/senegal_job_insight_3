@@ -12,34 +12,46 @@ export const fetchJobsFromCSV = async (): Promise<JobOffer[]> => {
     const remoteUrl = API_BASE_URL ? `${API_BASE_URL}/download/csv?t=${Date.now()}` : null;
     
     let response;
-    try {
-      console.log(`[DataFetcher] Tentative de chargement : ${localUrl}`);
-      response = await fetch(localUrl);
-      
-      // Si on reçoit du HTML au lieu d'un CSV (cas du fallback 404 de Vercel)
-      const contentType = response.headers.get('content-type');
-      if (response.ok && contentType && contentType.includes('text/html')) {
-        console.warn(`[DataFetcher] Le fichier local a renvoyé du HTML. On bascule sur le remote.`);
-        if (remoteUrl) {
-          console.log(`[DataFetcher] Tentative remote : ${remoteUrl}`);
-          response = await fetch(remoteUrl);
-        } else {
-            throw new Error('Local file is HTML (404 fallback) and no remote URL defined.');
-        }
-      } else if (!response.ok) {
-        console.warn(`[DataFetcher] Local inaccessible (Status: ${response.status}).`);
-        if (remoteUrl) {
-          console.log(`[DataFetcher] Tentative remote : ${remoteUrl}`);
-          response = await fetch(remoteUrl);
-        }
-      }
-    } catch (e) {
-      console.error(`[DataFetcher] Erreur lors du fetch:`, e);
-      if (remoteUrl && (!response || !response.ok)) {
-        console.log(`[DataFetcher] Tentative de secours sur remote après erreur catchée.`);
+
+    // On tente d'abord de récupérer les données fraîches depuis Render (remote)
+    if (remoteUrl) {
+      try {
+        console.log(`[DataFetcher] Tentative remote : ${remoteUrl}`);
         response = await fetch(remoteUrl);
-      } else {
-        throw e;
+
+        if (response.ok) {
+          const contentType = response.headers.get('content-type');
+          // On vérifie que c'est bien du CSV et pas une erreur HTML
+          if (contentType && contentType.includes('text/csv')) {
+            console.log(`[DataFetcher] Données récupérées avec succès depuis Render.`);
+          } else {
+            console.warn(`[DataFetcher] Render a renvoyé un type de contenu inattendu : ${contentType}. Tentative local...`);
+            response = null;
+          }
+        } else {
+          console.warn(`[DataFetcher] Render inaccessible (Status: ${response.status}). Tentative local...`);
+          response = null;
+        }
+      } catch (e) {
+        console.error(`[DataFetcher] Erreur lors du fetch remote :`, e);
+        response = null;
+      }
+    }
+
+    // Si le remote a échoué ou n'est pas configuré, on tente le local (Vercel)
+    if (!response || !response.ok) {
+      try {
+        console.log(`[DataFetcher] Tentative de chargement local : ${localUrl}`);
+        response = await fetch(localUrl);
+
+        const contentType = response.headers.get('content-type');
+        if (response.ok && contentType && contentType.includes('text/html')) {
+          console.error(`[DataFetcher] Le fichier local est introuvable (404 fallback HTML).`);
+          response = null;
+        }
+      } catch (e) {
+        console.error(`[DataFetcher] Erreur lors du fetch local :`, e);
+        response = null;
       }
     }
 

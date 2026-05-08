@@ -23,7 +23,7 @@ class EmploiSenegalScraper(BaseScraper):
             facet_ul = soup.select_one('.facetapi-facet-im-field-offre-secteur')
 
         if not facet_ul:
-             print("Avertissement: Bloc de secteurs (facettes) non trouvé.")
+            print("Avertissement: Bloc de secteurs (facettes) non trouvé.")
 
         if facet_ul:
             links = facet_ul.find_all('a')
