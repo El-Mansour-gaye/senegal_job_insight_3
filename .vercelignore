@@ -5,6 +5,5 @@ runtime.txt
 src/scrapers/
 src/processing/
 src/main.py
-data/
 reports/
 node_modules/
