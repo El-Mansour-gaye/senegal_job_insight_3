@@ -7,6 +7,7 @@ export interface JobOffer {
   sector: string;
   contract_type: string;
   education_level: string;
+  min_education: string;
   experience_level: string;
   min_exp: number;
   max_exp: number;

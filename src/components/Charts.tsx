@@ -97,14 +97,28 @@ export const DistributionChart: React.FC<ChartProps> = ({ data, title }) => {
   );
 };
 
-export const SectorBarChart: React.FC<ChartProps> = ({ data, title }) => {
+interface HorizontalBarChartProps extends ChartProps {
+  height?: number;
+  barColor?: string;
+  secondaryColor?: string;
+  limit?: number;
+}
+
+export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
+  data,
+  title,
+  height = 550,
+  barColor = '#0a988b',
+  secondaryColor = '#ff9d17',
+  limit = 15
+}) => {
   if (!data || data.length === 0) return null;
 
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-premium border border-slate-100 h-[550px]">
+    <div className="bg-white p-6 rounded-2xl shadow-premium border border-slate-100" style={{ height }}>
       <h4 className="text-lg font-bold text-slate-800 mb-6">{title}</h4>
       <ResponsiveContainer width="100%" height="90%">
-        <BarChart data={data?.slice(0, 15)} layout="vertical" margin={{ left: 30, right: 30 }}>
+        <BarChart data={data.slice(0, limit)} layout="vertical" margin={{ left: 30, right: 30 }}>
           <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
           <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
           <YAxis 
@@ -120,10 +134,38 @@ export const SectorBarChart: React.FC<ChartProps> = ({ data, title }) => {
             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
           />
           <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={15}>
-            {data?.slice(0, 15).map((_, index) => (
-              <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#0a988b' : '#ff9d17'} />
+            {data.slice(0, limit).map((_, index) => (
+              <Cell key={`cell-${index}`} fill={index % 2 === 0 ? barColor : secondaryColor} />
             ))}
           </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
+
+export const SectorBarChart = HorizontalBarChart;
+
+export const SimpleBarChart: React.FC<ChartProps & { color?: string }> = ({ data, title, color = '#0a988b' }) => {
+  if (!data || data.length === 0) return null;
+
+  return (
+    <div className="bg-white p-6 rounded-2xl shadow-premium border border-slate-100 h-[400px]">
+      <h4 className="text-lg font-bold text-slate-800 mb-6">{title}</h4>
+      <ResponsiveContainer width="100%" height="85%">
+        <BarChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+          <XAxis
+            dataKey="name"
+            axisLine={false}
+            tickLine={false}
+            tick={{ fontSize: 10, fill: '#64748b' }}
+          />
+          <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
+          <Tooltip
+             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+          />
+          <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={40} fill={color} />
         </BarChart>
       </ResponsiveContainer>
     </div>
