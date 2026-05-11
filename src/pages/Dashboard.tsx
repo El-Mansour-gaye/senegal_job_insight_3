@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { KPICard } from '../components/KPICard';
-import { EvolutionChart, DistributionChart, SectorBarChart, SalaryChart } from '../components/Charts';
+import { EvolutionChart, DistributionChart, SectorBarChart, SalaryChart, HorizontalBarChart, SimpleBarChart } from '../components/Charts';
 import { MapChart } from '../components/MapChart';
 import { JobsDataTable } from '../components/JobsDataTable';
 import { useData } from '../context/DataContext';
@@ -81,11 +81,22 @@ export const Dashboard: React.FC = () => {
     const cityCounts: Record<string, number> = {};
     const skillCounts: Record<string, number> = {};
     const contractCounts: Record<string, number> = {};
+    const educationCounts: Record<string, number> = {};
+    const experienceCounts: Record<string, number> = {};
+    const companyCounts: Record<string, number> = {};
 
     filteredJobs.forEach(job => {
       sectorCounts[job.sector] = (sectorCounts[job.sector] || 0) + 1;
       cityCounts[job.location] = (cityCounts[job.location] || 0) + 1;
       contractCounts[job.contract_type] = (contractCounts[job.contract_type] || 0) + 1;
+      companyCounts[job.company] = (companyCounts[job.company] || 0) + 1;
+
+      const edu = job.min_education || 'N/A';
+      educationCounts[edu] = (educationCounts[edu] || 0) + 1;
+
+      const exp = job.experience_level || 'N/A';
+      experienceCounts[exp] = (experienceCounts[exp] || 0) + 1;
+
       job.key_skills.forEach(skill => {
         skillCounts[skill] = (skillCounts[skill] || 0) + 1;
       });
@@ -95,6 +106,7 @@ export const Dashboard: React.FC = () => {
     const dominantSector = sortedSectors[0]?.[0] || 'N/A';
     const topCity = Object.entries(cityCounts).sort((a,b) => b[1] - a[1])[0]?.[0] || 'Sénégal';
     const topSkill = Object.entries(skillCounts).sort((a,b) => b[1] - a[1])[0]?.[0] || 'N/A';
+    const topCompany = Object.entries(companyCounts).sort((a,b) => b[1] - a[1])[0]?.[0] || 'N/A';
 
     const jobsWithSalary = filteredJobs.filter(j => j.salary_avg !== undefined);
     const avgSalary = jobsWithSalary.length > 0
@@ -117,6 +129,24 @@ export const Dashboard: React.FC = () => {
     const top10Skills = Object.entries(skillCounts)
       .sort((a,b) => b[1] - a[1])
       .slice(0, 10)
+      .map(([name, value]) => ({ name, value }));
+
+    const topSkillsDetailed = Object.entries(skillCounts)
+      .sort((a,b) => b[1] - a[1])
+      .slice(0, 15)
+      .map(([name, value]) => ({ name, value }));
+
+    const topCompanies = Object.entries(companyCounts)
+      .sort((a,b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([name, value]) => ({ name, value }));
+
+    const educationDistribution = Object.entries(educationCounts)
+      .sort((a,b) => b[1] - a[1])
+      .map(([name, value]) => ({ name, value }));
+
+    const experienceDistribution = Object.entries(experienceCounts)
+      .sort((a,b) => b[1] - a[1])
       .map(([name, value]) => ({ name, value }));
 
     const geoData: Record<string, { count: number; coordinates: [number, number] }> = {};
@@ -175,8 +205,13 @@ export const Dashboard: React.FC = () => {
       dominantSector,
       topCity,
       topSkill,
+      topCompany,
       radarSkills,
       top10Skills,
+      topSkillsDetailed,
+      topCompanies,
+      educationDistribution,
+      experienceDistribution,
       sectorDistribution,
       contractDistribution: Object.entries(contractCounts).map(([name, value]) => ({ name, value })),
       geoStats: Object.entries(geoData).map(([city, data]) => ({
@@ -308,176 +343,211 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
+      {/* KPI Section - Shared but with slight persona variations */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <KPICard
+          title="Volume d'offres"
+          value={dashboardStats.totalJobs.toLocaleString()}
+          icon={Briefcase}
+          description={`${dashboardStats.totalJobs} offres sur cette sélection`}
+          color="primary"
+        />
+        <KPICard
+          title={persona === 'analyst' ? "Secteur Leader" : "Secteur n°1"}
+          value={dashboardStats.dominantSector}
+          icon={Zap}
+          description={persona === 'analyst' ? "Plus grosse part de marché" : "Secteur qui recrute le plus"}
+          color="secondary"
+        />
+        <KPICard
+          title={persona === 'analyst' ? "Croissance" : "Tendance"}
+          value={`${dashboardStats.monthlyGrowth > 0 ? '+' : ''}${dashboardStats.monthlyGrowth}%`}
+          icon={TrendingUp}
+          trend={`${Math.abs(dashboardStats.monthlyGrowth)}%`}
+          trendUp={dashboardStats.monthlyGrowth >= 0}
+          description={persona === 'analyst' ? "Évolution mensuelle globale" : "Évolution du volume d'offres"}
+          color="blue"
+        />
+        <KPICard
+          title={persona === 'analyst' ? "Salaire Moyen" : "Salaire Estimé"}
+          value={`${(dashboardStats.avgSalary / 1000).toFixed(0)}k CFA`}
+          icon={DollarSign}
+          description="Basé sur les offres avec salaire"
+          color="accent"
+        />
+      </div>
+
       {persona === 'analyst' ? (
-        <>
-          {/* KPI Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <KPICard 
-              title="Volume d'offres"
-              value={dashboardStats.totalJobs.toLocaleString()}
-              icon={Briefcase} 
-              description={`${dashboardStats.totalJobs} offres sur cette sélection`}
-              color="primary"
-            />
-            <KPICard 
-              title="Secteur Leader"
-              value={dashboardStats.dominantSector}
-              icon={Zap} 
-              description="Plus grosse part de marché"
-              color="secondary"
-            />
-            <KPICard 
-              title="Croissance"
-              value={`${dashboardStats.monthlyGrowth > 0 ? '+' : ''}${dashboardStats.monthlyGrowth}%`}
-              icon={TrendingUp} 
-              trend={`${Math.abs(dashboardStats.monthlyGrowth)}%`}
-              trendUp={dashboardStats.monthlyGrowth >= 0}
-              description="Évolution mensuelle globale"
-              color="blue"
-            />
-            <KPICard
-              title="Salaire Moyen"
-              value={`${(dashboardStats.avgSalary / 1000).toFixed(0)}k CFA`}
-              icon={DollarSign}
-              description="Basé sur les offres avec salaire"
-              color="accent"
-            />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-8">
+            <MapChart data={dashboardStats.geoStats} title="Répartition Géographique des Opportunités" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <EvolutionChart data={dashboardStats.monthlyEvolution} title="Dynamique des recrutements" />
+              <DistributionChart data={dashboardStats.contractDistribution} title="Types de contrats" />
+            </div>
+
+            {/* Market Gaps section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <SimpleBarChart
+                data={dashboardStats.educationDistribution}
+                title="Structure de l'Offre par Diplôme"
+                color="#0a988b"
+              />
+              <SimpleBarChart
+                data={dashboardStats.experienceDistribution}
+                title="Structure de l'Offre par Expérience"
+                color="#ff9d17"
+              />
+            </div>
+
+            {/* Analysis Section (Merged) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="bg-white p-8 rounded-3xl shadow-premium border border-slate-100">
+                <h4 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                  <Star className="text-secondary" />
+                  Top 10 Compétences
+                </h4>
+                <div className="space-y-4">
+                  {dashboardStats.top10Skills.map((skill, i) => (
+                    <div key={skill.name} className="space-y-1">
+                      <div className="flex justify-between text-xs font-bold text-slate-700">
+                        <span>{skill.name}</span>
+                        <span className="text-primary">{Math.round((skill.value / dashboardStats.totalJobs) * 100)}%</span>
+                      </div>
+                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          whileInView={{ width: `${Math.min(100, (skill.value / dashboardStats.totalJobs) * 200)}%` }}
+                          className="h-full bg-primary rounded-full"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-white p-8 rounded-3xl shadow-premium border border-slate-100 flex flex-col">
+                <h4 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                  <Brain className="text-primary" /> Radar des Compétences
+                </h4>
+                <div className="flex-1 min-h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart cx="50%" cy="50%" outerRadius="80%" data={dashboardStats.radarSkills}>
+                      <PolarGrid stroke="#f1f5f9" />
+                      <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 10 }} />
+                      <Radar
+                        name="Fréquence"
+                        dataKey="A"
+                        stroke="#0a988b"
+                        fill="#0a988b"
+                        fillOpacity={0.4}
+                      />
+                      <RechartsTooltip />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Main Charts & Map */}
+          <div className="space-y-8">
+            <SectorBarChart data={dashboardStats.sectorDistribution} title="Volume par secteur" />
+            <SalaryChart data={dashboardStats.salaryBySector} title="Salaire par Secteur (Estimé)" />
+
+            <div className="bg-slate-900 text-white p-8 rounded-3xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl -mr-16 -mt-16"></div>
+              <div className="relative z-10">
+                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                  <Award className="text-secondary" /> Note de l'Expert
+                </h3>
+                <p className="text-slate-400 text-sm leading-relaxed mb-4 italic">
+                  "Le marché sénégalais montre une forte résilience dans le secteur {dashboardStats.dominantSector}.
+                  La ville de {dashboardStats.topCity} reste le poumon économique avec une concentration majeure des offres."
+                </p>
+                <div className="bg-white/10 p-3 rounded-xl border border-white/5 text-xs">
+                  <span className="text-emerald-400 font-bold">Conseil :</span> Ciblez les compétences en {dashboardStats.topSkill} pour maximiser l'employabilité.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Candidate Persona View */
+        <div className="space-y-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
-              <MapChart data={dashboardStats.geoStats} title="Répartition Géographique des Opportunités" />
+              {/* Profile Insights section */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <EvolutionChart data={dashboardStats.monthlyEvolution} title="Dynamique des recrutements" />
-                <DistributionChart data={dashboardStats.contractDistribution} title="Types de contrats" />
+                 <SimpleBarChart
+                   data={dashboardStats.educationDistribution}
+                   title="Niveau d'études requis"
+                   color="#0a988b"
+                 />
+                 <SimpleBarChart
+                   data={dashboardStats.experienceDistribution}
+                   title="Expérience demandée"
+                   color="#ff9d17"
+                 />
               </div>
 
-              {/* Analysis Section (Merged) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="bg-white p-8 rounded-3xl shadow-premium border border-slate-100">
-                  <h4 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                    <Star className="text-secondary" />
-                    Top 10 Compétences
-                  </h4>
-                  <div className="space-y-4">
-                    {dashboardStats.top10Skills.map((skill, i) => (
-                      <div key={skill.name} className="space-y-1">
-                        <div className="flex justify-between text-xs font-bold text-slate-700">
-                          <span>{skill.name}</span>
-                          <span className="text-primary">{Math.round((skill.value / dashboardStats.totalJobs) * 100)}%</span>
-                        </div>
-                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            whileInView={{ width: `${Math.min(100, (skill.value / dashboardStats.totalJobs) * 200)}%` }}
-                            className="h-full bg-primary rounded-full"
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+              {/* Skills Demand section */}
+              <HorizontalBarChart
+                data={dashboardStats.topSkillsDetailed}
+                title="Compétences les plus recherchées"
+                height={500}
+                limit={12}
+                barColor="#0a988b"
+                secondaryColor="#0a988b"
+              />
 
-                <div className="bg-white p-8 rounded-3xl shadow-premium border border-slate-100 flex flex-col">
-                  <h4 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                    <Brain className="text-primary" /> Radar des Compétences
-                  </h4>
-                  <div className="flex-1 min-h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RadarChart cx="50%" cy="50%" outerRadius="80%" data={dashboardStats.radarSkills}>
-                        <PolarGrid stroke="#f1f5f9" />
-                        <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 10 }} />
-                        <Radar
-                          name="Fréquence"
-                          dataKey="A"
-                          stroke="#0a988b"
-                          fill="#0a988b"
-                          fillOpacity={0.4}
-                        />
-                        <RechartsTooltip />
-                      </RadarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
+              {/* Map Hotspots */}
+              <MapChart data={dashboardStats.geoStats} title="Où postuler ? (Hotspots Emploi)" />
             </div>
 
             <div className="space-y-8">
-              <SectorBarChart data={dashboardStats.sectorDistribution} title="Volume par secteur" />
-              <SalaryChart data={dashboardStats.salaryBySector} title="Salaire par Secteur (Estimé)" />
+              {/* Sidebar Insights */}
+              <div className="bg-white p-8 rounded-3xl shadow-premium border border-slate-100">
+                <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                  <Award className="text-primary" /> Top Recruteurs
+                </h3>
+                <p className="text-slate-500 text-sm mb-6">Les entreprises les plus actives sur le marché actuellement.</p>
+                <div className="space-y-4">
+                   {dashboardStats.topCompanies.slice(0, 5).map((company, i) => (
+                     <div key={company.name} className="flex items-center justify-between group">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-400 group-hover:bg-primary group-hover:text-white transition-colors">
+                            {i+1}
+                          </div>
+                          <span className="text-sm font-medium text-slate-700 truncate max-w-[150px]">{company.name}</span>
+                        </div>
+                        <span className="text-xs font-bold bg-slate-100 px-2 py-1 rounded-lg text-slate-500">{company.value} offres</span>
+                     </div>
+                   ))}
+                </div>
+              </div>
 
-              <div className="bg-slate-900 text-white p-8 rounded-3xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl -mr-16 -mt-16"></div>
-                <div className="relative z-10">
-                  <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                    <Award className="text-secondary" /> Note de l'Expert
-                  </h3>
-                  <p className="text-slate-400 text-sm leading-relaxed mb-4 italic">
-                    "Le marché sénégalais montre une forte résilience dans le secteur {dashboardStats.dominantSector}.
-                    La ville de {dashboardStats.topCity} reste le poumon économique avec une concentration majeure des offres."
-                  </p>
-                  <div className="bg-white/10 p-3 rounded-xl border border-white/5 text-xs">
-                    <span className="text-emerald-400 font-bold">Conseil :</span> Ciblez les compétences en {dashboardStats.topSkill} pour maximiser l'employabilité.
+              <div className="bg-white p-8 rounded-3xl shadow-premium border border-slate-100">
+                <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                  <TrendingUp className="text-secondary" /> Conseils Carrière
+                </h3>
+                <div className="space-y-4">
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-xs text-slate-400 uppercase font-black mb-1">Ville Clé</p>
+                    <p className="text-sm font-bold text-slate-800">{dashboardStats.topCity} concentre l'essentiel des opportunités.</p>
+                  </div>
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-xs text-slate-400 uppercase font-black mb-1">Compétence Phare</p>
+                    <p className="text-sm font-bold text-slate-800">Misez sur {dashboardStats.topSkill} pour vous démarquer.</p>
+                  </div>
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-xs text-slate-400 uppercase font-black mb-1">Recruteur Actif</p>
+                    <p className="text-sm font-bold text-slate-800">{dashboardStats.topCompany} recrute massivement en ce moment.</p>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-1 space-y-6">
-            <div className="bg-white p-8 rounded-3xl shadow-premium border border-slate-100">
-              <h3 className="text-xl font-bold text-slate-800 mb-4">Conseils Carrière</h3>
-              <p className="text-slate-500 text-sm leading-relaxed mb-6">
-                Optimisez votre recherche d'emploi en ciblant les secteurs et villes les plus dynamiques.
-              </p>
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                    <MapPin size={20} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-slate-800">{dashboardStats.topCity}</p>
-                    <p className="text-xs text-slate-500">Ville la plus dynamique</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
-                    <TrendingUp size={20} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-slate-800">{dashboardStats.topSkill}</p>
-                    <p className="text-xs text-slate-500">Compétence "Hot"</p>
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            <KPICard 
-              title="Salaire Médian"
-              value={`${dashboardStats.avgSalary.toLocaleString()} CFA`}
-              icon={DollarSign} 
-              description="Moyenne sur les offres filtrées"
-              color="primary"
-            />
-
-            <div className="bg-white p-8 rounded-3xl shadow-premium border border-slate-100">
-              <h4 className="text-lg font-bold text-slate-800 mb-4">Répartition Contrats</h4>
-              <div className="space-y-3">
-                {dashboardStats.contractDistribution.map(c => (
-                   <div key={c.name} className="flex items-center justify-between">
-                      <span className="text-sm text-slate-600">{c.name}</span>
-                      <span className="text-sm font-bold bg-slate-100 px-2 py-1 rounded-lg">{c.value}</span>
-                   </div>
-                ))}
-              </div>
+              <DistributionChart data={dashboardStats.contractDistribution} title="Marché des contrats" />
             </div>
-          </div>
-          <div className="lg:col-span-2 space-y-8">
-            <MapChart data={dashboardStats.geoStats} title="Où sont les opportunités ?" />
-            <EvolutionChart data={dashboardStats.monthlyEvolution} title="Meilleurs moments pour postuler" />
           </div>
         </div>
       )}

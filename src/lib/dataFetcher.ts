@@ -103,6 +103,7 @@ export const fetchJobsFromCSV = async (): Promise<JobOffer[]> => {
             sector: row.sector || 'N/A',
             contract_type: row.contract_type || 'N/A',
             education_level: row.education_level || 'N/A',
+            min_education: row.min_education || 'N/A',
             experience_level: row.experience_level || 'N/A',
             min_exp: parseInt(row.min_exp) || 0,
             max_exp: parseInt(row.max_exp) || 0,
@@ -110,6 +111,7 @@ export const fetchJobsFromCSV = async (): Promise<JobOffer[]> => {
             key_skills: row.key_skills ? row.key_skills.split(',').map((s: string) => s.trim()) : [],
             description: row.description || '',
             publish_date: row.publish_date || new Date().toISOString(),
+            scraped_date: row.scraped_date || new Date().toISOString(),
             offer_url: row.offer_url || '#',
             source: row.source || 'Scraper'
           }));
