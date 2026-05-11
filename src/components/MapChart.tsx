@@ -13,7 +13,7 @@ export const MapChart: React.FC<MapChartProps> = ({ data, title }) => {
   const position: [number, number] = [14.4974, -14.4524];
 
   return (
-    <div className="bg-slate-900/40 backdrop-blur-md p-6 rounded-2xl shadow-premium border border-slate-800/50 h-[500px] flex flex-col">
+    <div className="glass-card p-6 rounded-2xl shadow-premium h-[500px] flex flex-col">
       <div className="flex items-center justify-between mb-6">
         <h4 className="text-lg font-bold text-slate-100">{title}</h4>
         <div className="flex items-center gap-2">

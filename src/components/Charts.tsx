@@ -24,7 +24,7 @@ export const EvolutionChart: React.FC<ChartProps> = ({ data, title }) => {
   if (!data || data.length === 0) return null;
 
   return (
-    <div className="bg-slate-900/40 backdrop-blur-md p-6 rounded-2xl shadow-premium border border-slate-800/50 h-[400px]">
+    <div className="glass-card p-6 rounded-2xl shadow-premium h-[400px]">
       <h4 className="text-lg font-bold text-slate-100 mb-6">{title}</h4>
       <ResponsiveContainer width="100%" height="85%">
         <AreaChart data={data}>
@@ -71,7 +71,7 @@ export const DistributionChart: React.FC<ChartProps> = ({ data, title }) => {
   if (!data || data.length === 0) return null;
 
   return (
-    <div className="bg-slate-900/40 backdrop-blur-md p-6 rounded-2xl shadow-premium border border-slate-800/50 h-[400px]">
+    <div className="glass-card p-6 rounded-2xl shadow-premium h-[400px]">
       <h4 className="text-lg font-bold text-slate-100 mb-6">{title}</h4>
       <ResponsiveContainer width="100%" height="85%">
         <PieChart>
@@ -118,7 +118,7 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
   if (!data || data.length === 0) return null;
 
   return (
-    <div className="bg-slate-900/40 backdrop-blur-md p-6 rounded-2xl shadow-premium border border-slate-800/50" style={{ height }}>
+    <div className="glass-card p-6 rounded-2xl shadow-premium" style={{ height }}>
       <h4 className="text-lg font-bold text-slate-100 mb-6">{title}</h4>
       <ResponsiveContainer width="100%" height="90%">
         <BarChart data={data.slice(0, limit)} layout="vertical" margin={{ left: 30, right: 30 }}>
@@ -154,7 +154,7 @@ export const SimpleBarChart: React.FC<ChartProps & { color?: string }> = ({ data
   if (!data || data.length === 0) return null;
 
   return (
-    <div className="bg-slate-900/40 backdrop-blur-md p-6 rounded-2xl shadow-premium border border-slate-800/50 h-[400px]">
+    <div className="glass-card p-6 rounded-2xl shadow-premium h-[400px]">
       <h4 className="text-lg font-bold text-slate-100 mb-6">{title}</h4>
       <ResponsiveContainer width="100%" height="85%">
         <BarChart data={data}>
@@ -181,7 +181,7 @@ export const SalaryChart: React.FC<ChartProps> = ({ data, title }) => {
   if (!data || data.length === 0) return null;
 
   return (
-    <div className="bg-slate-900/40 backdrop-blur-md p-6 rounded-2xl shadow-premium border border-slate-800/50 h-[400px]">
+    <div className="glass-card p-6 rounded-2xl shadow-premium h-[400px]">
       <h4 className="text-lg font-bold text-slate-100 mb-6">{title}</h4>
       <ResponsiveContainer width="100%" height="85%">
         <BarChart data={data}>
