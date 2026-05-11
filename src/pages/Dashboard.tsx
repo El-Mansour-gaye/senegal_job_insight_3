@@ -8,20 +8,13 @@ import { useData } from '../context/DataContext';
 import {
   LayoutDashboard,
   Briefcase,
-  BarChart3,
-  Settings,
-  LogOut,
-  Search,
-  MapPin,
-  Users,
   Zap,
   TrendingUp,
   DollarSign,
-  Download,
   Brain,
   Star,
   Award,
-  Filter
+  Info
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion } from 'motion/react';
@@ -52,7 +45,7 @@ export const Dashboard: React.FC = () => {
       scale: 2,
       useCORS: true,
       logging: false,
-      backgroundColor: '#030712'
+      backgroundColor: '#F8FAFC'
     });
 
     const imgData = canvas.toDataURL('image/png');
@@ -83,7 +76,6 @@ export const Dashboard: React.FC = () => {
   const dashboardStats = useMemo(() => {
     if (filteredJobs.length === 0) return null;
 
-    // We can reuse some logic or compute what we need for the filtered set
     const sectorCounts: Record<string, number> = {};
     const cityCounts: Record<string, number> = {};
     const skillCounts: Record<string, number> = {};
@@ -120,10 +112,6 @@ export const Dashboard: React.FC = () => {
       ? Math.round(jobsWithSalary.reduce((acc, curr) => acc + (curr.salary_avg || 0), 0) / jobsWithSalary.length)
       : 0;
 
-    const sectorDistribution = Object.entries(sectorCounts)
-      .sort((a, b) => b[1] - a[1])
-      .map(([name, value]) => ({ name, value }));
-
     const radarSkills = Object.entries(skillCounts)
       .sort((a,b) => b[1] - a[1])
       .slice(0, 6)
@@ -148,14 +136,6 @@ export const Dashboard: React.FC = () => {
       .slice(0, 10)
       .map(([name, value]) => ({ name, value }));
 
-    const educationDistribution = Object.entries(educationCounts)
-      .sort((a,b) => b[1] - a[1])
-      .map(([name, value]) => ({ name, value }));
-
-    const experienceDistribution = Object.entries(experienceCounts)
-      .sort((a,b) => b[1] - a[1])
-      .map(([name, value]) => ({ name, value }));
-
     const geoData: Record<string, { count: number; coordinates: [number, number] }> = {};
     filteredJobs.forEach(job => {
       if (!geoData[job.location]) {
@@ -167,7 +147,6 @@ export const Dashboard: React.FC = () => {
       geoData[job.location].count += 1;
     });
 
-    // Monthly evolution (simplified for filtered set)
     const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
     const monthlyData: Record<string, number> = {};
     const now = new Date();
@@ -217,9 +196,9 @@ export const Dashboard: React.FC = () => {
       top10Skills,
       topSkillsDetailed,
       topCompanies,
-      educationDistribution,
-      experienceDistribution,
-      sectorDistribution,
+      educationDistribution: Object.entries(educationCounts).sort((a,b) => b[1] - a[1]).map(([name, value]) => ({ name, value })),
+      experienceDistribution: Object.entries(experienceCounts).sort((a,b) => b[1] - a[1]).map(([name, value]) => ({ name, value })),
+      sectorDistribution: Object.entries(sectorCounts).sort((a,b) => b[1] - a[1]).map(([name, value]) => ({ name, value })),
       contractDistribution: Object.entries(contractCounts).map(([name, value]) => ({ name, value })),
       geoStats: Object.entries(geoData).map(([city, data]) => ({
         city,
@@ -230,7 +209,7 @@ export const Dashboard: React.FC = () => {
       monthlyGrowth: filteredMonthlyGrowth,
       salaryBySector
     };
-  }, [filteredJobs, globalStats]);
+  }, [filteredJobs]);
 
   if (isLoading) {
     return (
@@ -242,39 +221,35 @@ export const Dashboard: React.FC = () => {
 
   if (error || jobs.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] glass-card rounded-3xl p-12 text-center shadow-premium">
-        <div className="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center mb-6 text-slate-500">
+      <div className="flex flex-col items-center justify-center min-h-[400px] bg-white rounded-3xl p-12 text-center shadow-sm border border-slate-100">
+        <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6 text-slate-300">
           <Briefcase size={40} />
         </div>
-        <h2 className="text-2xl font-bold text-slate-100 mb-2">Aucune donnée disponible</h2>
-        <p className="text-slate-400 max-w-md mb-8">
-          {error || "Le fichier de données est vide ou n'a pas encore été généré par le scraper sur Render."}
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">Aucune donnée disponible</h2>
+        <p className="text-slate-500 max-w-md mb-8">
+          {error || "Le fichier de données est vide ou n'a pas encore été généré."}
         </p>
-        <div className="flex gap-4">
-          <button 
-            onClick={() => window.location.reload()}
-            className="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-opacity-90 transition-all flex items-center gap-2"
-          >
-            <Zap size={20} /> Actualiser
-          </button>
-        </div>
+        <button
+          onClick={() => window.location.reload()}
+          className="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-opacity-90 transition-all flex items-center gap-2"
+        >
+          <Zap size={20} /> Actualiser
+        </button>
       </div>
     );
   }
 
   if (!dashboardStats) return <div>Pas de données.</div>;
 
-  const salaryChartData = dashboardStats.salaryBySector;
-
   return (
     <div className="space-y-8 animate-fade-in pb-24" id="dashboard-content">
-      {/* Title Section (Simplified as it's now in Header) */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h2 className="text-2xl font-bold text-slate-100 tracking-tight">
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+            {persona === 'analyst' ? <LayoutDashboard className="text-primary" strokeWidth={1.5} /> : <Users className="text-primary" strokeWidth={1.5} />}
             Vue {persona === 'analyst' ? 'Décideur' : 'Candidat'}
           </h2>
-          <p className="text-slate-400 mt-1 text-sm">
+          <p className="text-slate-500 mt-1 text-sm font-bold">
             {persona === 'analyst' 
               ? "Intelligence de marché : Analyses et tendances stratégiques."
               : "Parcours carrière : Opportunités et insights pour candidats."}
@@ -288,7 +263,6 @@ export const Dashboard: React.FC = () => {
         showSearch={false}
       />
 
-      {/* KPI Section - Shared but with slight persona variations */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <KPICard
           title="Volume d'offres"
@@ -311,14 +285,14 @@ export const Dashboard: React.FC = () => {
           trend={`${Math.abs(dashboardStats.monthlyGrowth)}%`}
           trendUp={dashboardStats.monthlyGrowth >= 0}
           description={persona === 'analyst' ? "Évolution mensuelle globale" : "Évolution du volume d'offres"}
-          color="blue"
+          color="secondary"
         />
         <KPICard
           title={persona === 'analyst' ? "Salaire Moyen" : "Salaire Estimé"}
           value={`${(dashboardStats.avgSalary / 1000).toFixed(0)}k CFA`}
           icon={DollarSign}
           description="Basé sur les offres avec salaire"
-          color="accent"
+          color="primary"
         />
       </div>
 
@@ -331,35 +305,24 @@ export const Dashboard: React.FC = () => {
               <DistributionChart data={dashboardStats.contractDistribution} title="Types de contrats" />
             </div>
 
-            {/* Market Gaps section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <SimpleBarChart
-                data={dashboardStats.educationDistribution}
-                title="Structure de l'Offre par Diplôme"
-                color="#0a988b"
-              />
-              <SimpleBarChart
-                data={dashboardStats.experienceDistribution}
-                title="Structure de l'Offre par Expérience"
-                color="#ff9d17"
-              />
+              <SimpleBarChart data={dashboardStats.educationDistribution} title="Structure par Diplôme" color="#0a988b" />
+              <SimpleBarChart data={dashboardStats.experienceDistribution} title="Structure par Expérience" color="#ff9d17" />
             </div>
 
-            {/* Analysis Section (Merged) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="glass-card p-8 rounded-3xl shadow-premium">
-                <h4 className="text-xl font-bold text-slate-100 mb-6 flex items-center gap-2">
-                  <Star className="text-secondary" />
-                  Top 10 Compétences
+              <div className="glass-card p-8 rounded-3xl">
+                <h4 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                  <Star className="text-secondary" strokeWidth={1.5} /> Top 10 Compétences
                 </h4>
                 <div className="space-y-4">
-                  {dashboardStats.top10Skills.map((skill, i) => (
+                  {dashboardStats.top10Skills.map((skill) => (
                     <div key={skill.name} className="space-y-1">
-                      <div className="flex justify-between text-xs font-bold text-slate-200">
+                      <div className="flex justify-between text-xs font-bold text-slate-700">
                         <span>{skill.name}</span>
                         <span className="text-primary">{Math.round((skill.value / dashboardStats.totalJobs) * 100)}%</span>
                       </div>
-                      <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                         <motion.div
                           initial={{ width: 0 }}
                           whileInView={{ width: `${Math.min(100, (skill.value / dashboardStats.totalJobs) * 200)}%` }}
@@ -371,22 +334,16 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
 
-              <div className="glass-card p-8 rounded-3xl shadow-premium flex flex-col">
-                <h4 className="text-xl font-bold text-slate-100 mb-6 flex items-center gap-2">
-                  <Brain className="text-primary" /> Radar des Compétences
+              <div className="glass-card p-8 rounded-3xl flex flex-col">
+                <h4 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                  <Brain className="text-primary" strokeWidth={1.5} /> Radar des Compétences
                 </h4>
                 <div className="flex-1 min-h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <RadarChart cx="50%" cy="50%" outerRadius="80%" data={dashboardStats.radarSkills}>
-                      <PolarGrid stroke="#1e293b" />
-                      <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 10 }} />
-                      <Radar
-                        name="Fréquence"
-                        dataKey="A"
-                        stroke="#0a988b"
-                        fill="#0a988b"
-                        fillOpacity={0.4}
-                      />
+                      <PolarGrid stroke="#e2e8f0" />
+                      <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 600 }} />
+                      <Radar name="Fréquence" dataKey="A" stroke="#0a988b" fill="#0a988b" fillOpacity={0.2} />
                       <RechartsTooltip />
                     </RadarChart>
                   </ResponsiveContainer>
@@ -397,153 +354,95 @@ export const Dashboard: React.FC = () => {
 
           <div className="space-y-8">
             <SectorBarChart data={dashboardStats.sectorDistribution} title="Volume par secteur" />
-            <SalaryChart data={dashboardStats.salaryBySector} title="Salaire par Secteur (Estimé)" />
+            <SalaryChart data={dashboardStats.salaryBySector} title="Salaire par Secteur" />
 
-            <div className="glass-card p-8 rounded-3xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl -mr-16 -mt-16"></div>
+            <div className="p-8 bg-white rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
               <div className="relative z-10">
-                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                  <Award className="text-secondary" /> Note de l'Expert
+                <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-slate-900">
+                  <Award className="text-secondary" strokeWidth={1.5} /> Note de l'Expert
                 </h3>
-                <p className="text-slate-400 text-sm leading-relaxed mb-4 italic">
+                <p className="text-slate-600 text-sm leading-relaxed mb-4 italic font-medium">
                   "Le marché sénégalais montre une forte résilience dans le secteur {dashboardStats.dominantSector}.
-                  La ville de {dashboardStats.topCity} reste le poumon économique avec une concentration majeure des offres."
+                  La ville de {dashboardStats.topCity} reste le poumon économique."
                 </p>
-                <div className="bg-white/10 p-3 rounded-xl border border-white/5 text-xs">
-                  <span className="text-emerald-400 font-bold">Conseil :</span> Ciblez les compétences en {dashboardStats.topSkill} pour maximiser l'employabilité.
+                <div className="bg-primary/5 p-3 rounded-xl border border-primary/10 text-xs font-bold text-slate-700">
+                  <span className="text-primary">Conseil :</span> Misez sur {dashboardStats.topSkill} pour booster votre profil.
                 </div>
               </div>
             </div>
           </div>
         </div>
       ) : (
-        /* Candidate Persona View */
         <div className="space-y-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
-              {/* Profile Insights section */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                 <SimpleBarChart
-                   data={dashboardStats.educationDistribution}
-                   title="Niveau d'études requis"
-                   color="#0a988b"
-                 />
-                 <SimpleBarChart
-                   data={dashboardStats.experienceDistribution}
-                   title="Expérience demandée"
-                   color="#ff9d17"
-                 />
+                 <SimpleBarChart data={dashboardStats.educationDistribution} title="Niveau d'études" color="#0a988b" />
+                 <SimpleBarChart data={dashboardStats.experienceDistribution} title="Expérience demandée" color="#ff9d17" />
               </div>
-
-              {/* Skills Demand section */}
-              <HorizontalBarChart
-                data={dashboardStats.topSkillsDetailed}
-                title="Compétences les plus recherchées"
-                height={500}
-                limit={12}
-                barColor="#0a988b"
-                secondaryColor="#0a988b"
-              />
-
-              {/* Map Hotspots */}
-              <MapChart data={dashboardStats.geoStats} title="Où postuler ? (Hotspots Emploi)" />
+              <HorizontalBarChart data={dashboardStats.topSkillsDetailed} title="Compétences recherchées" height={500} limit={12} barColor="#0a988b" secondaryColor="#0a988b" />
+              <MapChart data={dashboardStats.geoStats} title="Où postuler ?" />
             </div>
 
             <div className="space-y-8">
-              {/* Sidebar Insights */}
-              <div className="glass-card p-8 rounded-3xl shadow-premium">
-                <h3 className="text-xl font-bold text-slate-100 mb-4 flex items-center gap-2">
-                  <Award className="text-primary" /> Top Recruteurs
+              <div className="glass-card p-8 rounded-3xl">
+                <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                  <Award className="text-primary" strokeWidth={1.5} /> Top Recruteurs
                 </h3>
-                <p className="text-slate-400 text-sm mb-6">Les entreprises les plus actives sur le marché actuellement.</p>
                 <div className="space-y-4">
                    {dashboardStats.topCompanies.slice(0, 5).map((company, i) => (
                      <div key={company.name} className="flex items-center justify-between group">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-slate-800/50 flex items-center justify-center text-xs font-bold text-slate-500 group-hover:bg-primary group-hover:text-white transition-colors">
+                          <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-xs font-black text-slate-400 group-hover:bg-primary group-hover:text-white transition-colors">
                             {i+1}
                           </div>
-                          <span className="text-sm font-medium text-slate-300 truncate max-w-[150px]">{company.name}</span>
+                          <span className="text-sm font-bold text-slate-700 truncate max-w-[150px]">{company.name}</span>
                         </div>
-                        <span className="text-xs font-bold bg-slate-800 px-2 py-1 rounded-lg text-slate-400">{company.value} offres</span>
+                        <span className="text-xs font-black bg-slate-100 px-2 py-1 rounded-lg text-slate-500">{company.value} offres</span>
                      </div>
                    ))}
                 </div>
               </div>
-
-              <div className="glass-card p-8 rounded-3xl shadow-premium">
-                <h3 className="text-xl font-bold text-slate-100 mb-4 flex items-center gap-2">
-                  <TrendingUp className="text-secondary" /> Conseils Carrière
-                </h3>
-                <div className="space-y-4">
-                  <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50">
-                    <p className="text-xs text-slate-500 uppercase font-black mb-1">Ville Clé</p>
-                    <p className="text-sm font-bold text-slate-200">{dashboardStats.topCity} concentre l'essentiel des opportunités.</p>
-                  </div>
-                  <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50">
-                    <p className="text-xs text-slate-500 uppercase font-black mb-1">Compétence Phare</p>
-                    <p className="text-sm font-bold text-slate-200">Misez sur {dashboardStats.topSkill} pour vous démarquer.</p>
-                  </div>
-                  <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50">
-                    <p className="text-xs text-slate-500 uppercase font-black mb-1">Recruteur Actif</p>
-                    <p className="text-sm font-bold text-slate-200">{dashboardStats.topCompany} recrute massivement en ce moment.</p>
-                  </div>
-                </div>
-              </div>
-
               <DistributionChart data={dashboardStats.contractDistribution} title="Marché des contrats" />
             </div>
           </div>
         </div>
       )}
 
-      {/* Advanced Data Table - Always visible as it's the core explorer */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-slate-100">
-            {persona === 'candidate' ? 'Trouver votre prochain défi' : 'Détails des offres'}
-          </h2>
-          <div className="text-xs text-slate-500">
-            Affichage de {filteredJobs.length} résultats sur {jobs.length}
-          </div>
-        </div>
+        <h2 className="text-xl font-bold text-slate-900">
+          {persona === 'candidate' ? 'Trouver votre prochain défi' : 'Détails des offres'}
+        </h2>
         <JobsDataTable data={filteredJobs} />
       </div>
 
-      {/* Methodology Section - "Coulisses de la donnée" */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        className="glass-card rounded-3xl p-8 text-white relative overflow-hidden"
-      >
+      <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm relative overflow-hidden">
         <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1">
-            <h3 className="text-2xl font-bold mb-4 flex items-center gap-2 font-display">
-              <Zap className="text-primary" /> Coulisses de la donnée
+            <h3 className="text-2xl font-black mb-4 flex items-center gap-2 text-slate-900">
+              <Zap className="text-primary" strokeWidth={1.5} /> Coulisses
             </h3>
-            <p className="text-slate-400 text-sm leading-relaxed">
-              Ce dashboard est alimenté par un pipeline ETL (Extract, Transform, Load) automatisé conçu spécifiquement pour le marché sénégalais.
+            <p className="text-slate-500 text-sm leading-relaxed font-bold">
+              Pipeline ETL automatisé conçu spécifiquement pour le marché sénégalais.
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 lg:col-span-2 gap-6">
-            <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700/50">
-              <h4 className="font-bold text-primary mb-2 text-sm uppercase tracking-wider">Sources</h4>
-              <p className="text-xs text-slate-300">Données agrégées depuis EmploiSénégal, LinkedIn et sites carrières officiels.</p>
+            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+              <h4 className="font-black text-primary mb-2 text-xs uppercase tracking-widest">Sources</h4>
+              <p className="text-xs text-slate-600 font-bold">EmploiSénégal, LinkedIn et sites officiels.</p>
             </div>
-            <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700/50">
-              <h4 className="font-bold text-primary mb-2 text-sm uppercase tracking-wider">Traitement</h4>
-              <p className="text-xs text-slate-300">Nettoyage NLP pour la normalisation des intitulés et dédoublonnage intelligent.</p>
+            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+              <h4 className="font-black text-primary mb-2 text-xs uppercase tracking-widest">Traitement</h4>
+              <p className="text-xs text-slate-600 font-bold">Nettoyage NLP et dédoublonnage intelligent.</p>
             </div>
-            <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700/50">
-              <h4 className="font-bold text-primary mb-2 text-sm uppercase tracking-wider">Fréquence</h4>
-              <p className="text-xs text-slate-300">Mise à jour : {new Date().toLocaleDateString('fr-FR')}. Scraping hebdomadaire avec 98% de succès.</p>
+            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+              <h4 className="font-black text-primary mb-2 text-xs uppercase tracking-widest">Fréquence</h4>
+              <p className="text-xs text-slate-600 font-bold">Mise à jour : {new Date().toLocaleDateString('fr-FR')}.</p>
             </div>
           </div>
         </div>
-        
-        {/* Abstract background elements */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
       </motion.div>
     </div>
   );

@@ -7,35 +7,33 @@
   --color-secondary: #ff9d17;
   --color-accent: #f44a3c;
   
-  --shadow-premium: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+  --shadow-premium: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
 @layer base {
   body {
-    @apply bg-[#030712] text-slate-100 font-sans antialiased overflow-x-hidden;
+    @apply bg-[#F8FAFC] text-[#1E293B] font-sans antialiased overflow-x-hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-slate-900 font-bold;
   }
 }
 
 .glass-morphism {
-  @apply bg-white/5 backdrop-blur-xl border border-white/10;
+  @apply bg-white/70 backdrop-blur-xl border border-white/20;
 }
 
 .glass-card {
-  background: rgba(30, 30, 30, 0.6);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(10, 152, 139, 0.2);
-  @apply transition-all duration-300;
+  @apply bg-white border border-slate-100 shadow-sm transition-all duration-300;
 }
 
 .glass-card:hover {
-  border-color: rgba(10, 152, 139, 1);
-  box-shadow: 0 0 20px rgba(10, 152, 139, 0.15);
+  @apply border-primary/30 shadow-md;
 }
 
 .pill-nav {
-  background: rgba(30, 30, 30, 0.8);
-  backdrop-filter: blur(12px);
-  @apply border border-slate-800 p-1 rounded-full shadow-2xl;
+  @apply bg-white border border-primary/20 p-1 rounded-full shadow-sm;
 }
 
 .gradient-text {
@@ -61,7 +59,7 @@
   width: 50vw;
   height: 50vw;
   background: var(--color-primary);
-  opacity: 0.1;
+  opacity: 0.05;
   filter: blur(150px);
   border-radius: 100%;
 }
@@ -73,7 +71,7 @@
   width: 40vw;
   height: 40vw;
   background: var(--color-secondary);
-  opacity: 0.05;
+  opacity: 0.03;
   filter: blur(150px);
   border-radius: 100%;
 }
@@ -97,5 +95,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-800 rounded-full hover:bg-slate-700 transition-colors;
+  @apply bg-slate-200 rounded-full hover:bg-slate-300 transition-colors;
+}
+
+/* Table Stripes */
+.table-stripe tr:nth-child(even) {
+  @apply bg-slate-50/50;
 }

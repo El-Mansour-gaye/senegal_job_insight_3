@@ -15,14 +15,14 @@ export const MapChart: React.FC<MapChartProps> = ({ data, title }) => {
   return (
     <div className="glass-card p-6 rounded-2xl shadow-premium h-[500px] flex flex-col">
       <div className="flex items-center justify-between mb-6">
-        <h4 className="text-lg font-bold text-slate-100">{title}</h4>
+        <h4 className="text-lg font-bold text-slate-900">{title}</h4>
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-full bg-primary/60"></span>
-          <span className="text-xs text-slate-400 font-medium whitespace-nowrap">Intensité des offres</span>
+          <span className="text-xs text-slate-500 font-medium whitespace-nowrap">Intensité des offres</span>
         </div>
       </div>
       
-      <div className="flex-1 rounded-xl overflow-hidden border border-slate-800/50 shadow-inner relative z-0">
+      <div className="flex-1 rounded-xl overflow-hidden border border-slate-100 shadow-inner relative z-0">
         <MapContainer 
           center={position} 
           zoom={7} 
@@ -31,7 +31,7 @@ export const MapChart: React.FC<MapChartProps> = ({ data, title }) => {
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           />
           <ZoomControl position="bottomright" />
           
@@ -49,8 +49,8 @@ export const MapChart: React.FC<MapChartProps> = ({ data, title }) => {
             >
               <Popup>
                 <div className="p-1">
-                   <h5 className="font-bold text-slate-100 m-0">{city.city}</h5>
-                   <p className="text-primary font-bold text-lg m-0">{city.count} <span className="text-xs font-normal text-slate-400">offres</span></p>
+                   <h5 className="font-bold text-slate-900 m-0">{city.city}</h5>
+                   <p className="text-primary font-bold text-lg m-0">{city.count} <span className="text-xs font-normal text-slate-500">offres</span></p>
                 </div>
               </Popup>
             </CircleMarker>
