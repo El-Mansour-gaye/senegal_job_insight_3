@@ -2,11 +2,15 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { JobOffer } from '../types';
 import { fetchJobsFromCSV } from '../lib/dataFetcher';
 
+export type Persona = 'analyst' | 'candidate';
+
 interface DataContextType {
   jobs: JobOffer[];
   isLoading: boolean;
   error: string | null;
   stats: any;
+  persona: Persona;
+  setPersona: (persona: Persona) => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -15,6 +19,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [jobs, setJobs] = useState<JobOffer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [persona, setPersona] = useState<Persona>('analyst');
 
   useEffect(() => {
     const loadData = async () => {
@@ -167,7 +172,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [jobs]);
 
   return (
-    <DataContext.Provider value={{ jobs, isLoading, error, stats }}>
+    <DataContext.Provider value={{ jobs, isLoading, error, stats, persona, setPersona }}>
       {children}
     </DataContext.Provider>
   );

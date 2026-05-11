@@ -20,15 +20,15 @@ export const JobDetail: React.FC = () => {
 
   if (!job) {
     return (
-      <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
-        <h2 className="text-2xl font-bold text-slate-800">Offre introuvable</h2>
+      <div className="p-12 text-center bg-slate-900/40 backdrop-blur-md rounded-3xl border border-slate-800">
+        <h2 className="text-2xl font-bold text-slate-100">Offre introuvable</h2>
         <Link to="/jobs" className="text-primary mt-4 inline-block hover:underline">Retour à la liste</Link>
       </div>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 animate-fade-in">
+    <div className="max-w-5xl mx-auto space-y-8 animate-fade-in pb-24">
       <Link to="/jobs" className="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors font-medium">
         <ArrowLeft size={18} />
         Retour aux offres
@@ -37,55 +37,55 @@ export const JobDetail: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-8">
-          <div className="bg-white p-8 rounded-3xl shadow-premium border border-slate-100">
+          <div className="bg-slate-900/40 backdrop-blur-md p-8 rounded-3xl shadow-premium border border-slate-800/50">
             <div className="flex flex-wrap items-center gap-3 mb-4">
-              <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider italic">
+              <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider italic border border-primary/20">
                 {job.contract_type}
               </span>
-              <span className="bg-secondary/10 text-secondary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+              <span className="bg-slate-800 text-slate-400 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border border-slate-700">
                 {job.sector}
               </span>
             </div>
 
-            <h1 className="text-4xl font-extrabold text-slate-900 mb-6 leading-tight">{job.title}</h1>
+            <h1 className="text-4xl font-extrabold text-slate-100 mb-6 leading-tight">{job.title}</h1>
             
-            <div className="flex flex-wrap gap-6 text-slate-600 mb-10 pb-8 border-b border-slate-100">
+            <div className="flex flex-wrap gap-6 text-slate-400 mb-10 pb-8 border-b border-slate-800">
               <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
+                <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-500">
                   <Building2 size={20} />
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400 font-medium">ENTREPRISE</p>
-                  <p className="font-bold text-slate-800">{job.company}</p>
+                  <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">ENTREPRISE</p>
+                  <p className="font-bold text-slate-200">{job.company}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
+                <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-500">
                   <MapPin size={20} />
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400 font-medium">LOCALISATION</p>
-                  <p className="font-bold text-slate-800">{job.location}</p>
+                  <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">LOCALISATION</p>
+                  <p className="font-bold text-slate-200">{job.location}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
+                <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-500">
                   <Calendar size={20} />
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400 font-medium">PUBLIÉ LE</p>
-                  <p className="font-bold text-slate-800">{formatDate(job.publish_date)}</p>
+                  <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">PUBLIÉ LE</p>
+                  <p className="font-bold text-slate-200">{formatDate(job.publish_date)}</p>
                 </div>
               </div>
             </div>
 
             <div className="space-y-6">
               <section>
-                <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <h3 className="text-xl font-bold text-slate-100 mb-4 flex items-center gap-2">
                   <div className="w-1.5 h-6 bg-primary rounded-full"></div>
                   Description du poste
                 </h3>
-                <div className="text-slate-600 leading-relaxed text-lg">
+                <div className="text-slate-400 leading-relaxed text-lg">
                   {job.description}
                   <p className="mt-4">
                     L'objectif de ce recrutement est de renforcer notre position sur le marché sénégalais en apportant une expertise technique poussée. 
@@ -95,13 +95,13 @@ export const JobDetail: React.FC = () => {
               </section>
 
               <section className="pt-8">
-                <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <h3 className="text-xl font-bold text-slate-100 mb-4 flex items-center gap-2">
                   <div className="w-1.5 h-6 bg-secondary rounded-full"></div>
                   Compétences clés
                 </h3>
                 <div className="flex flex-wrap gap-3">
                   {job.key_skills.map(skill => (
-                    <span key={skill} className="bg-primary/5 text-primary-dark font-semibold px-4 py-2 rounded-xl border border-primary/10 shadow-sm transition-all hover:bg-primary hover:text-white cursor-default">
+                    <span key={skill} className="bg-slate-800 text-slate-300 font-semibold px-4 py-2 rounded-xl border border-slate-700 shadow-sm transition-all hover:border-primary/50 cursor-default">
                       {skill}
                     </span>
                   ))}
@@ -158,10 +158,10 @@ export const JobDetail: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-3xl shadow-premium border border-slate-100">
-             <h4 className="font-bold text-slate-800 mb-4">À propos du scraping</h4>
-             <p className="text-sm text-slate-500 mb-4">Cette offre a été collectée automatiquement le {formatDate(job.scraped_date)} par nos agents d'analyse.</p>
-             <Link to="/stats" className="text-primary text-sm font-bold flex items-center gap-1 hover:underline">
+          <div className="bg-slate-900/40 backdrop-blur-md p-6 rounded-3xl shadow-premium border border-slate-800/50">
+             <h4 className="font-bold text-slate-100 mb-4">À propos du scraping</h4>
+             <p className="text-sm text-slate-400 mb-4">Cette offre a été collectée automatiquement le {formatDate(job.scraped_date)} par nos agents d'analyse.</p>
+             <Link to="/" className="text-primary text-sm font-bold flex items-center gap-1 hover:underline">
                Voir les statistiques du secteur
                <ArrowLeft className="rotate-180" size={14} />
              </Link>
