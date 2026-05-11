@@ -242,7 +242,7 @@ export const Dashboard: React.FC = () => {
 
   if (error || jobs.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] bg-slate-900/40 backdrop-blur-md border border-slate-800 rounded-3xl p-12 text-center shadow-premium">
+      <div className="flex flex-col items-center justify-center min-h-[400px] glass-card rounded-3xl p-12 text-center shadow-premium">
         <div className="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center mb-6 text-slate-500">
           <Briefcase size={40} />
         </div>
@@ -347,7 +347,7 @@ export const Dashboard: React.FC = () => {
 
             {/* Analysis Section (Merged) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="bg-slate-900/40 backdrop-blur-md p-8 rounded-3xl shadow-premium border border-slate-800/50">
+              <div className="glass-card p-8 rounded-3xl shadow-premium">
                 <h4 className="text-xl font-bold text-slate-100 mb-6 flex items-center gap-2">
                   <Star className="text-secondary" />
                   Top 10 Compétences
@@ -371,7 +371,7 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-slate-900/40 backdrop-blur-md p-8 rounded-3xl shadow-premium border border-slate-800/50 flex flex-col">
+              <div className="glass-card p-8 rounded-3xl shadow-premium flex flex-col">
                 <h4 className="text-xl font-bold text-slate-100 mb-6 flex items-center gap-2">
                   <Brain className="text-primary" /> Radar des Compétences
                 </h4>
@@ -399,7 +399,7 @@ export const Dashboard: React.FC = () => {
             <SectorBarChart data={dashboardStats.sectorDistribution} title="Volume par secteur" />
             <SalaryChart data={dashboardStats.salaryBySector} title="Salaire par Secteur (Estimé)" />
 
-            <div className="bg-slate-900 text-white p-8 rounded-3xl relative overflow-hidden">
+            <div className="glass-card p-8 rounded-3xl relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl -mr-16 -mt-16"></div>
               <div className="relative z-10">
                 <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
@@ -451,7 +451,7 @@ export const Dashboard: React.FC = () => {
 
             <div className="space-y-8">
               {/* Sidebar Insights */}
-              <div className="bg-slate-900/40 backdrop-blur-md p-8 rounded-3xl shadow-premium border border-slate-800/50">
+              <div className="glass-card p-8 rounded-3xl shadow-premium">
                 <h3 className="text-xl font-bold text-slate-100 mb-4 flex items-center gap-2">
                   <Award className="text-primary" /> Top Recruteurs
                 </h3>
@@ -471,7 +471,7 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-slate-900/40 backdrop-blur-md p-8 rounded-3xl shadow-premium border border-slate-800/50">
+              <div className="glass-card p-8 rounded-3xl shadow-premium">
                 <h3 className="text-xl font-bold text-slate-100 mb-4 flex items-center gap-2">
                   <TrendingUp className="text-secondary" /> Conseils Carrière
                 </h3>
@@ -514,7 +514,7 @@ export const Dashboard: React.FC = () => {
       <motion.div 
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
-        className="bg-slate-900 rounded-3xl p-8 text-white relative overflow-hidden"
+        className="glass-card rounded-3xl p-8 text-white relative overflow-hidden"
       >
         <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1">

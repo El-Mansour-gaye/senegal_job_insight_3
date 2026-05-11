@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", "Geist", ui-sans-serif, system-ui, sans-serif;
   
   --color-primary: #0a988b;
   --color-secondary: #ff9d17;
@@ -12,7 +12,7 @@
 
 @layer base {
   body {
-    @apply bg-[#030712] text-slate-100 font-sans antialiased;
+    @apply bg-[#030712] text-slate-100 font-sans antialiased overflow-x-hidden;
   }
 }
 
@@ -21,27 +21,61 @@
 }
 
 .glass-card {
-  @apply bg-slate-900/40 backdrop-blur-md border border-slate-800/50 hover:border-primary/30 transition-all duration-300;
+  background: rgba(30, 30, 30, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(10, 152, 139, 0.2);
+  @apply transition-all duration-300;
+}
+
+.glass-card:hover {
+  border-color: rgba(10, 152, 139, 1);
+  box-shadow: 0 0 20px rgba(10, 152, 139, 0.15);
 }
 
 .pill-nav {
-  @apply bg-slate-900/80 backdrop-blur-2xl border border-slate-800 p-1 rounded-full shadow-2xl;
+  background: rgba(30, 30, 30, 0.8);
+  backdrop-filter: blur(12px);
+  @apply border border-slate-800 p-1 rounded-full shadow-2xl;
 }
 
 .gradient-text {
   @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-accent;
 }
 
-.gradient-border {
-  position: relative;
-  border-radius: 1rem;
-  padding: 1px;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+/* Background Blobs */
+.bg-blobs {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
 }
 
-.gradient-border > div {
-  background: #0f172a;
-  border-radius: 0.95rem;
+.blob-turquoise {
+  position: absolute;
+  top: -10%;
+  right: -10%;
+  width: 50vw;
+  height: 50vw;
+  background: var(--color-primary);
+  opacity: 0.1;
+  filter: blur(150px);
+  border-radius: 100%;
+}
+
+.blob-orange {
+  position: absolute;
+  bottom: -10%;
+  left: -10%;
+  width: 40vw;
+  height: 40vw;
+  background: var(--color-secondary);
+  opacity: 0.05;
+  filter: blur(150px);
+  border-radius: 100%;
 }
 
 @keyframes fade-in {

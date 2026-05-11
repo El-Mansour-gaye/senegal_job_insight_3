@@ -16,7 +16,7 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       whileHover={{ scale: 1.01 }}
-      className="bg-slate-900/40 backdrop-blur-md p-6 rounded-2xl shadow-premium border border-slate-800/50 mb-4 group transition-all hover:border-primary/30"
+      className="glass-card p-6 mb-4 group transition-all"
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">

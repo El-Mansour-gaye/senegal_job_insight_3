@@ -1,21 +1,12 @@
 from fastapi.middleware.cors import CORSMiddleware
 import os
-from fastapi import FastAPI, BackgroundTasks, Request
-from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from fastapi import FastAPI, BackgroundTasks
+from fastapi.responses import FileResponse, JSONResponse
 from src.main import main as run_scraper_pipeline
 import uvicorn
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 import logging
-import pandas as pd
-import re
-from groq import Groq
-from dotenv import load_dotenv
-from pydantic import BaseModel
-from typing import List, Optional
-
-# Load environment variables
-load_dotenv()
 
 # Log configuration
 logging.basicConfig(level=logging.INFO)
