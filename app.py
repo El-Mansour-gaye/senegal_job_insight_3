@@ -71,6 +71,7 @@ PROCESSED_FILE = os.path.join(DATA_DIR, "jobs_senegal_processed.csv")
 
 # Groq Client
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
 class ChatRequest(BaseModel):
@@ -189,7 +190,7 @@ async def chat(request: ChatRequest):
 
     try:
         completion = client.chat.completions.create(
-            model="llama3-8b-8192",
+            model=GROQ_MODEL,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": request.message},
