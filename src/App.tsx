@@ -5,6 +5,7 @@ import { Sidebar, Header } from './components/Navigation';
 import { Dashboard } from './pages/Dashboard';
 import { JobExplorer } from './pages/JobExplorer';
 import { JobDetail } from './pages/JobDetail';
+import ChatAssistant from './components/ChatAssistant';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
