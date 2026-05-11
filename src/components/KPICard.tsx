@@ -30,15 +30,15 @@ export const KPICard: React.FC<KPICardProps> = ({ title, value, icon: Icon, tren
       whileHover={{ y: -5 }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="bg-white p-6 rounded-2xl shadow-premium border border-slate-100 overflow-hidden relative group cursor-help transition-all duration-300 hover:shadow-xl"
+      className="bg-slate-900/40 backdrop-blur-md p-6 rounded-2xl shadow-premium border border-slate-800/50 overflow-hidden relative group cursor-help transition-all duration-300 hover:border-primary/30"
     >
       <div className="flex items-center justify-between">
         <div className="z-10">
-          <p className="text-sm font-medium text-slate-400 mb-1 tracking-tight flex items-center gap-1">
+          <p className="text-sm font-medium text-slate-500 mb-1 tracking-tight flex items-center gap-1">
             {title}
           </p>
           <div className="flex items-baseline gap-2">
-            <h3 className="text-3xl font-black text-slate-800 tracking-tight leading-none">{value}</h3>
+            <h3 className="text-3xl font-black text-slate-100 tracking-tight leading-none">{value}</h3>
             {trend && (
               <span className={cn(
                 "px-2 py-1 rounded-full text-[10px] font-black inline-flex items-center gap-0.5 shadow-sm border",

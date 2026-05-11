@@ -8,14 +8,11 @@ import { JobDetail } from './pages/JobDetail';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0">
-        <Header />
-        <main className="flex-1 p-8 lg:p-12 overflow-y-auto">
-          {children}
-        </main>
-      </div>
+    <div className="min-h-screen bg-[#030712] text-slate-100 flex flex-col">
+      <Header />
+      <main className="flex-1 px-6 lg:px-12 py-8 max-w-7xl mx-auto w-full">
+        {children}
+      </main>
     </div>
   );
 };
@@ -29,7 +26,7 @@ export default function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/jobs" element={<JobExplorer />} />
             <Route path="/jobs/:id" element={<JobDetail />} />
-            <Route path="/settings" element={<div className="p-8 text-center bg-white rounded-2xl shadow-premium">Page en cours de développement...</div>} />
+            <Route path="/settings" element={<div className="p-12 text-center bg-slate-900/40 backdrop-blur-md border border-slate-800 rounded-3xl shadow-premium">Page en cours de développement...</div>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Layout>

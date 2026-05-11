@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { KPICard } from '../components/KPICard';
 import { EvolutionChart, DistributionChart, SectorBarChart, SalaryChart, HorizontalBarChart, SimpleBarChart } from '../components/Charts';
 import { MapChart } from '../components/MapChart';
 import { JobsDataTable } from '../components/JobsDataTable';
+import { FilterBar } from '../components/FilterBar';
 import { useData } from '../context/DataContext';
 import {
   LayoutDashboard,
@@ -36,22 +37,22 @@ import {
 } from 'recharts';
 
 export const Dashboard: React.FC = () => {
-  const { jobs, isLoading, stats: globalStats, error } = useData();
-  const [persona, setPersona] = useState<'analyst' | 'candidate'>('analyst');
+  const { jobs, isLoading, stats: globalStats, error, persona } = useData();
   const [filters, setFilters] = useState({
     sector: 'Tous les secteurs',
     city: 'Toutes les villes',
     contract: 'Tous les contrats'
   });
 
-  const exportToPDF = async () => {
+  const exportToPDF = React.useCallback(async () => {
     const element = document.getElementById('dashboard-content');
     if (!element) return;
 
     const canvas = await html2canvas(element, {
       scale: 2,
       useCORS: true,
-      logging: false
+      logging: false,
+      backgroundColor: '#030712'
     });
 
     const imgData = canvas.toDataURL('image/png');
@@ -62,7 +63,13 @@ export const Dashboard: React.FC = () => {
 
     pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
     pdf.save(`senegal-jobs-report-${new Date().toISOString().split('T')[0]}.pdf`);
-  };
+  }, []);
+
+  useEffect(() => {
+    const handleExport = () => exportToPDF();
+    window.addEventListener('trigger-pdf-export', handleExport);
+    return () => window.removeEventListener('trigger-pdf-export', handleExport);
+  }, [exportToPDF]);
 
   const filteredJobs = useMemo(() => {
     return jobs.filter(job => {
@@ -235,12 +242,12 @@ export const Dashboard: React.FC = () => {
 
   if (error || jobs.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] bg-white rounded-2xl p-12 text-center shadow-premium">
-        <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6 text-slate-300">
+      <div className="flex flex-col items-center justify-center min-h-[400px] bg-slate-900/40 backdrop-blur-md border border-slate-800 rounded-3xl p-12 text-center shadow-premium">
+        <div className="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center mb-6 text-slate-500">
           <Briefcase size={40} />
         </div>
-        <h2 className="text-2xl font-bold text-slate-800 mb-2">Aucune donnée disponible</h2>
-        <p className="text-slate-500 max-w-md mb-8">
+        <h2 className="text-2xl font-bold text-slate-100 mb-2">Aucune donnée disponible</h2>
+        <p className="text-slate-400 max-w-md mb-8">
           {error || "Le fichier de données est vide ou n'a pas encore été généré par le scraper sur Render."}
         </p>
         <div className="flex gap-4">
@@ -255,93 +262,31 @@ export const Dashboard: React.FC = () => {
     );
   }
 
-  const sectors = ['Tous les secteurs', ...Array.from(new Set(jobs.map(j => j.sector)))].sort();
-  const cities = ['Toutes les villes', ...Array.from(new Set(jobs.map(j => j.location)))].sort();
-  const contracts = ['Tous les contrats', ...Array.from(new Set(jobs.map(j => j.contract_type)))].sort();
-
   if (!dashboardStats) return <div>Pas de données.</div>;
 
   const salaryChartData = dashboardStats.salaryBySector;
 
   return (
-    <div className="space-y-8 animate-fade-in" id="dashboard-content">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-100 pb-8">
+    <div className="space-y-8 animate-fade-in pb-24" id="dashboard-content">
+      {/* Title Section (Simplified as it's now in Header) */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Senegal <span className="text-primary">Job Insights</span></h1>
-          <p className="text-slate-500 mt-2 text-lg">
+          <h2 className="text-2xl font-bold text-slate-100 tracking-tight">
+            Vue {persona === 'analyst' ? 'Décideur' : 'Candidat'}
+          </h2>
+          <p className="text-slate-400 mt-1 text-sm">
             {persona === 'analyst' 
               ? "Intelligence de marché : Analyses et tendances stratégiques."
               : "Parcours carrière : Opportunités et insights pour candidats."}
           </p>
         </div>
-        
-        <div className="flex flex-wrap items-center gap-4">
-          <button 
-            onClick={exportToPDF}
-            className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all shadow-sm"
-          >
-            <Download size={18} /> Rapport PDF
-          </button>
-
-          <div className="flex items-center p-1 bg-slate-100 rounded-2xl w-fit">
-            <button
-              onClick={() => setPersona('analyst')}
-              className={cn(
-                "px-6 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2",
-                persona === 'analyst' ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-700"
-              )}
-            >
-              <BarChart3 size={18} /> Décideur
-            </button>
-            <button
-              onClick={() => setPersona('candidate')}
-              className={cn(
-                "px-6 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2",
-                persona === 'candidate' ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-700"
-              )}
-            >
-              <Users size={18} /> Candidat
-            </button>
-          </div>
-        </div>
       </div>
 
-      {/* Global Filter Bar */}
-      <div className="bg-white p-4 rounded-3xl shadow-premium border border-slate-100 flex flex-wrap gap-4 items-center">
-        <div className="flex items-center gap-2 text-primary font-bold text-sm px-2">
-          <Filter size={18} /> Filtres :
-        </div>
-
-        <div className="flex-1 flex flex-wrap gap-3">
-          <select
-            className="pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none text-xs font-bold appearance-none cursor-pointer hover:bg-slate-100 transition-colors"
-            value={filters.sector}
-            onChange={(e) => setFilters({...filters, sector: e.target.value})}
-          >
-            {sectors.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-
-          <select
-            className="pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none text-xs font-bold appearance-none cursor-pointer hover:bg-slate-100 transition-colors"
-            value={filters.city}
-            onChange={(e) => setFilters({...filters, city: e.target.value})}
-          >
-            {cities.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-
-          <select
-            className="pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none text-xs font-bold appearance-none cursor-pointer hover:bg-slate-100 transition-colors"
-            value={filters.contract}
-            onChange={(e) => setFilters({...filters, contract: e.target.value})}
-          >
-            {contracts.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
-
-        <div className="text-xs text-slate-400 font-medium italic">
-          {filteredJobs.length} offres affichées
-        </div>
-      </div>
+      <FilterBar
+        filters={{...filters, search: ''}}
+        setFilters={(f) => setFilters({sector: f.sector, city: f.city, contract: f.contract})}
+        showSearch={false}
+      />
 
       {/* KPI Section - Shared but with slight persona variations */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -402,19 +347,19 @@ export const Dashboard: React.FC = () => {
 
             {/* Analysis Section (Merged) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="bg-white p-8 rounded-3xl shadow-premium border border-slate-100">
-                <h4 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+              <div className="bg-slate-900/40 backdrop-blur-md p-8 rounded-3xl shadow-premium border border-slate-800/50">
+                <h4 className="text-xl font-bold text-slate-100 mb-6 flex items-center gap-2">
                   <Star className="text-secondary" />
                   Top 10 Compétences
                 </h4>
                 <div className="space-y-4">
                   {dashboardStats.top10Skills.map((skill, i) => (
                     <div key={skill.name} className="space-y-1">
-                      <div className="flex justify-between text-xs font-bold text-slate-700">
+                      <div className="flex justify-between text-xs font-bold text-slate-200">
                         <span>{skill.name}</span>
                         <span className="text-primary">{Math.round((skill.value / dashboardStats.totalJobs) * 100)}%</span>
                       </div>
-                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
                         <motion.div
                           initial={{ width: 0 }}
                           whileInView={{ width: `${Math.min(100, (skill.value / dashboardStats.totalJobs) * 200)}%` }}
@@ -426,15 +371,15 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-white p-8 rounded-3xl shadow-premium border border-slate-100 flex flex-col">
-                <h4 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+              <div className="bg-slate-900/40 backdrop-blur-md p-8 rounded-3xl shadow-premium border border-slate-800/50 flex flex-col">
+                <h4 className="text-xl font-bold text-slate-100 mb-6 flex items-center gap-2">
                   <Brain className="text-primary" /> Radar des Compétences
                 </h4>
                 <div className="flex-1 min-h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <RadarChart cx="50%" cy="50%" outerRadius="80%" data={dashboardStats.radarSkills}>
-                      <PolarGrid stroke="#f1f5f9" />
-                      <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 10 }} />
+                      <PolarGrid stroke="#1e293b" />
+                      <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 10 }} />
                       <Radar
                         name="Fréquence"
                         dataKey="A"
@@ -506,42 +451,42 @@ export const Dashboard: React.FC = () => {
 
             <div className="space-y-8">
               {/* Sidebar Insights */}
-              <div className="bg-white p-8 rounded-3xl shadow-premium border border-slate-100">
-                <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+              <div className="bg-slate-900/40 backdrop-blur-md p-8 rounded-3xl shadow-premium border border-slate-800/50">
+                <h3 className="text-xl font-bold text-slate-100 mb-4 flex items-center gap-2">
                   <Award className="text-primary" /> Top Recruteurs
                 </h3>
-                <p className="text-slate-500 text-sm mb-6">Les entreprises les plus actives sur le marché actuellement.</p>
+                <p className="text-slate-400 text-sm mb-6">Les entreprises les plus actives sur le marché actuellement.</p>
                 <div className="space-y-4">
                    {dashboardStats.topCompanies.slice(0, 5).map((company, i) => (
                      <div key={company.name} className="flex items-center justify-between group">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-400 group-hover:bg-primary group-hover:text-white transition-colors">
+                          <div className="w-8 h-8 rounded-lg bg-slate-800/50 flex items-center justify-center text-xs font-bold text-slate-500 group-hover:bg-primary group-hover:text-white transition-colors">
                             {i+1}
                           </div>
-                          <span className="text-sm font-medium text-slate-700 truncate max-w-[150px]">{company.name}</span>
+                          <span className="text-sm font-medium text-slate-300 truncate max-w-[150px]">{company.name}</span>
                         </div>
-                        <span className="text-xs font-bold bg-slate-100 px-2 py-1 rounded-lg text-slate-500">{company.value} offres</span>
+                        <span className="text-xs font-bold bg-slate-800 px-2 py-1 rounded-lg text-slate-400">{company.value} offres</span>
                      </div>
                    ))}
                 </div>
               </div>
 
-              <div className="bg-white p-8 rounded-3xl shadow-premium border border-slate-100">
-                <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+              <div className="bg-slate-900/40 backdrop-blur-md p-8 rounded-3xl shadow-premium border border-slate-800/50">
+                <h3 className="text-xl font-bold text-slate-100 mb-4 flex items-center gap-2">
                   <TrendingUp className="text-secondary" /> Conseils Carrière
                 </h3>
                 <div className="space-y-4">
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <p className="text-xs text-slate-400 uppercase font-black mb-1">Ville Clé</p>
-                    <p className="text-sm font-bold text-slate-800">{dashboardStats.topCity} concentre l'essentiel des opportunités.</p>
+                  <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50">
+                    <p className="text-xs text-slate-500 uppercase font-black mb-1">Ville Clé</p>
+                    <p className="text-sm font-bold text-slate-200">{dashboardStats.topCity} concentre l'essentiel des opportunités.</p>
                   </div>
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <p className="text-xs text-slate-400 uppercase font-black mb-1">Compétence Phare</p>
-                    <p className="text-sm font-bold text-slate-800">Misez sur {dashboardStats.topSkill} pour vous démarquer.</p>
+                  <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50">
+                    <p className="text-xs text-slate-500 uppercase font-black mb-1">Compétence Phare</p>
+                    <p className="text-sm font-bold text-slate-200">Misez sur {dashboardStats.topSkill} pour vous démarquer.</p>
                   </div>
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <p className="text-xs text-slate-400 uppercase font-black mb-1">Recruteur Actif</p>
-                    <p className="text-sm font-bold text-slate-800">{dashboardStats.topCompany} recrute massivement en ce moment.</p>
+                  <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50">
+                    <p className="text-xs text-slate-500 uppercase font-black mb-1">Recruteur Actif</p>
+                    <p className="text-sm font-bold text-slate-200">{dashboardStats.topCompany} recrute massivement en ce moment.</p>
                   </div>
                 </div>
               </div>
@@ -555,10 +500,10 @@ export const Dashboard: React.FC = () => {
       {/* Advanced Data Table - Always visible as it's the core explorer */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-slate-800">
+          <h2 className="text-xl font-bold text-slate-100">
             {persona === 'candidate' ? 'Trouver votre prochain défi' : 'Détails des offres'}
           </h2>
-          <div className="text-xs text-slate-400">
+          <div className="text-xs text-slate-500">
             Affichage de {filteredJobs.length} résultats sur {jobs.length}
           </div>
         </div>

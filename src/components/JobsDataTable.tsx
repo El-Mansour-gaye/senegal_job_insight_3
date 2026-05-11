@@ -41,10 +41,10 @@ export const JobsDataTable: React.FC<JobsDataTableProps> = ({ data }) => {
       ),
       cell: info => (
         <div className="py-2">
-          <Link to={`/jobs/${info.row.original.id}`} className="font-bold text-slate-800 hover:text-primary transition-colors line-clamp-1">
+          <Link to={`/jobs/${info.row.original.id}`} className="font-bold text-slate-100 hover:text-primary transition-colors line-clamp-1">
             {info.getValue()}
           </Link>
-          <div className="flex items-center gap-1 text-xs text-slate-400 mt-0.5">
+          <div className="flex items-center gap-1 text-xs text-slate-500 mt-0.5">
             <Building2 size={12} />
             <span>{info.row.original.company}</span>
           </div>
@@ -54,22 +54,22 @@ export const JobsDataTable: React.FC<JobsDataTableProps> = ({ data }) => {
     columnHelper.accessor('location', {
       header: 'Ville',
       cell: info => (
-        <div className="flex items-center gap-1 text-slate-600">
-          <MapPin size={14} className="text-slate-400" />
+        <div className="flex items-center gap-1 text-slate-400">
+          <MapPin size={14} className="text-slate-500" />
           <span>{info.getValue()}</span>
         </div>
       ),
     }),
     columnHelper.accessor('sector', {
       header: 'Secteur',
-      cell: info => <span className="text-xs font-medium bg-slate-100 px-2 py-1 rounded-md text-slate-600 truncate max-w-[150px] inline-block">{info.getValue()}</span>,
+      cell: info => <span className="text-xs font-medium bg-slate-800 border border-slate-700 px-2 py-1 rounded-md text-slate-300 truncate max-w-[150px] inline-block">{info.getValue()}</span>,
     }),
     columnHelper.accessor('contract_type', {
       header: 'Contrat',
       cell: info => (
         <span className={cn(
-          "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider",
-          info.getValue() === 'CDI' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'
+          "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border",
+          info.getValue() === 'CDI' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-slate-800 text-slate-400 border-slate-700'
         )}>
           {info.getValue()}
         </span>
@@ -112,36 +112,36 @@ export const JobsDataTable: React.FC<JobsDataTableProps> = ({ data }) => {
   });
 
   return (
-    <div className="bg-white rounded-2xl shadow-premium border border-slate-100 overflow-hidden flex flex-col">
-      <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h4 className="text-lg font-bold text-slate-800">Détails des offres</h4>
+    <div className="bg-slate-900/40 backdrop-blur-md rounded-2xl shadow-premium border border-slate-800/50 overflow-hidden flex flex-col">
+      <div className="p-6 border-b border-slate-800/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <h4 className="text-lg font-bold text-slate-100">Détails des offres</h4>
         <div className="relative w-full md:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
           <input
             value={globalFilter}
             onChange={e => setGlobalFilter(e.target.value)}
             placeholder="Filtrer dans le tableau..."
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/10 outline-none text-sm"
+            className="w-full pl-10 pr-4 py-2 bg-slate-800/50 border border-slate-700 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none text-sm text-slate-200"
           />
         </div>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
-          <thead className="bg-slate-50/50 text-slate-500 text-xs font-bold uppercase tracking-wider">
+          <thead className="bg-slate-900/50 text-slate-500 text-xs font-bold uppercase tracking-wider">
             {table.getHeaderGroups().map(headerGroup => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map(header => (
-                  <th key={header.id} className="px-6 py-4 border-b border-slate-100">
+                  <th key={header.id} className="px-6 py-4 border-b border-slate-800/50">
                     {flexRender(header.column.columnDef.header, header.getContext())}
                   </th>
                 ))}
               </tr>
             ))}
           </thead>
-          <tbody className="text-sm divide-y divide-slate-50">
+          <tbody className="text-sm divide-y divide-slate-800/50">
             {table.getRowModel().rows.map(row => (
-              <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
+              <tr key={row.id} className="hover:bg-white/5 transition-colors">
                 {row.getVisibleCells().map(cell => (
                   <td key={cell.id} className="px-6 py-3">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -153,7 +153,7 @@ export const JobsDataTable: React.FC<JobsDataTableProps> = ({ data }) => {
         </table>
       </div>
 
-      <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
+      <div className="p-4 bg-slate-900/50 border-t border-slate-800/50 flex items-center justify-between">
         <div className="text-xs text-slate-500 font-medium">
           Affichage de {table.getRowModel().rows.length} sur {data.length} offres
         </div>
