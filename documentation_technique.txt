@@ -1,0 +1,71 @@
+# Documentation Technique - Sénégal Job Insights
+
+## 1. Inventaire des Graphiques et Cartes
+
+Le site utilise principalement la bibliothèque `recharts` pour les graphiques et `react-leaflet` pour les cartes.
+
+### Graphiques (src/components/Charts.tsx & src/pages/Dashboard.tsx)
+- **EvolutionChart (AreaChart)** : Utilisé pour la "Dynamique des recrutements". Affiche l'évolution temporelle du nombre d'offres.
+- **DistributionChart (PieChart)** : Utilisé pour la répartition des "Types de contrats" et le "Marché des contrats".
+- **HorizontalBarChart / SectorBarChart (BarChart)** : Utilisé pour le "Volume par secteur" et les "Compétences les plus recherchées".
+- **SimpleBarChart (BarChart)** : Utilisé pour les distributions par niveau d'études ("Structure de l'Offre par Diplôme") et par expérience ("Structure de l'Offre par Expérience").
+- **SalaryChart (BarChart)** : Utilisé pour le "Salaire par Secteur (Estimé)".
+- **Radar des Compétences (RadarChart)** : Implémenté directement dans le Dashboard, il affiche la fréquence des top compétences sous forme de radar.
+
+### Cartes (src/components/MapChart.tsx)
+- **MapChart (Leaflet)** : Affiche la répartition géographique des opportunités au Sénégal sous forme de "Hotspots" (cercles de taille variable selon l'intensité des offres).
+
+---
+
+## 2. Structure des Données
+
+Les données sont stockées dans un fichier CSV qui est ensuite transformé en objets JSON pour le frontend.
+
+### Structure du CSV (public/data/jobs_senegal_processed.csv)
+Les colonnes présentes dans le fichier traité sont :
+- `scraped_date` : Date du scraping.
+- `publish_date` : Date de publication de l'offre.
+- `title` : Titre du poste.
+- `company` : Entreprise.
+- `location` : Localisation (Ville/Région).
+- `contract_type` : Type de contrat (CDI, CDD, etc.).
+- `education_level` : Niveau d'études brut.
+- `experience_level` : Niveau d'expérience requis.
+- `key_skills` : Compétences clés extraites.
+- `sector` : Secteur d'activité.
+- `offer_url` : Lien vers l'offre originale.
+- `source` : Site source.
+- `min_exp` : Expérience minimum (numérique).
+- `max_exp` : Expérience maximum (numérique).
+- `min_education` : Niveau d'études normalisé.
+- `education_rank` : Rang numérique du niveau d'études (pour le tri).
+- `latitude` : Latitude pour la carte.
+- `longitude` : Longitude pour la carte.
+- `coordinates` : Chaîne de caractères représentant les coordonnées.
+- `salary_avg` : Salaire moyen estimé.
+
+### Structure JSON (Interface JobOffer)
+Le frontend transforme chaque ligne du CSV en l'objet suivant :
+```json
+{
+  "id": "string",
+  "title": "string",
+  "company": "string",
+  "location": "string",
+  "coordinates": [number, number],
+  "sector": "string",
+  "contract_type": "string",
+  "education_level": "string",
+  "min_education": "string",
+  "experience_level": "string",
+  "min_exp": "number",
+  "max_exp": "number",
+  "salary_avg": "number (optional)",
+  "key_skills": "string[]",
+  "description": "string",
+  "publish_date": "string",
+  "scraped_date": "string",
+  "offer_url": "string",
+  "source": "string"
+}
+```
