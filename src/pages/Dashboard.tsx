@@ -14,7 +14,8 @@ import {
   Brain,
   Star,
   Award,
-  Info
+  Info,
+  Users
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion } from 'motion/react';

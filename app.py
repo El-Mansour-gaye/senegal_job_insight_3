@@ -1,12 +1,18 @@
 from fastapi.middleware.cors import CORSMiddleware
 import os
-from fastapi import FastAPI, BackgroundTasks
-from fastapi.responses import FileResponse, JSONResponse
+import pandas as pd
+from fastapi import FastAPI, BackgroundTasks, Request
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from src.main import main as run_scraper_pipeline
 import uvicorn
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 import logging
+from groq import Groq
+import json
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Log configuration
 logging.basicConfig(level=logging.INFO)
@@ -17,6 +23,10 @@ app = FastAPI(
     description="API pour piloter le scraping et l'analyse du marché de l'emploi au Sénégal",
     version="1.0.0"
 )
+
+# Configuration Groq
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
 
 # Configuration du Scheduler
 scheduler = BackgroundScheduler()
@@ -50,7 +60,7 @@ def stop_scheduler():
 # Configuration CORS pour autoriser le Frontend (Vercel)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # On pourra restreindre à votre URL Vercel plus tard
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -68,9 +78,63 @@ def root():
         "endpoints": {
             "scrape": "/scrape (POST) - Lance le pipeline",
             "download": "/download/csv (GET) - Télécharge le fichier pour Power BI",
-            "status": "/status (GET) - État du fichier de données"
+            "status": "/status (GET) - État du fichier de données",
+            "chat": "/api/chat (POST) - Chatbot avec RAG"
         }
     }
+
+@app.post("/api/chat")
+async def chat_endpoint(request: Request):
+    try:
+        body = await request.json()
+        messages = body.get("messages", [])
+        if not messages:
+            return JSONResponse(status_code=400, content={"error": "No messages provided"})
+
+        user_query = messages[-1]["content"]
+
+        # Simple RAG: Keyword search in CSV
+        context_jobs = "Aucun job trouvé pour cette requête."
+        if os.path.exists(PROCESSED_FILE):
+            df = pd.read_csv(PROCESSED_FILE)
+            # Basic keyword filtering
+            keywords = user_query.lower().split()
+            mask = df.apply(lambda row: any(k in str(row.values).lower() for k in keywords), axis=1)
+            filtered_df = df[mask].head(10)
+
+            if not filtered_df.empty:
+                context_jobs = filtered_df[['title', 'company', 'location', 'sector', 'salary_avg', 'key_skills']].to_string(index=False)
+
+        system_prompt = f"""Tu es l'assistant IA de 'Sénégal Job Insights'. Ton rôle est d'aider les utilisateurs à analyser le marché de l'emploi au Sénégal.
+
+Voici un extrait des données pertinentes actuelles issues de notre base de données :
+{context_jobs}
+
+Instructions :
+1. Réponds de manière professionnelle et concise.
+2. Utilise les données fournies pour étayer tes réponses.
+3. Si l'utilisateur pose une question sur un métier spécifique, une ville ou un secteur, réfère-toi aux données ci-dessus.
+4. Si les données ne contiennent pas la réponse, précise-le tout en restant utile.
+5. Ne mentionne pas que tu as reçu un 'extrait de données' ou un 'context', agis comme si tu avais accès à toute la base.
+"""
+
+        full_messages = [{"role": "system", "content": system_prompt}] + messages
+
+        def generate_stream():
+            completion = client.chat.completions.create(
+                model=GROQ_MODEL,
+                messages=full_messages,
+                stream=True,
+            )
+            for chunk in completion:
+                if chunk.choices[0].delta.content:
+                    yield chunk.choices[0].delta.content
+
+        return StreamingResponse(generate_stream(), media_type="text/plain")
+
+    except Exception as e:
+        logger.error(f"Error in chat endpoint: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.post("/scrape")
 async def trigger_scrape(background_tasks: BackgroundTasks):
