@@ -104,10 +104,10 @@ export const ChatAssistant: React.FC = () => {
             initial={{ y: 100, opacity: 0, scale: 0.9 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 100, opacity: 0, scale: 0.9 }}
-            className="w-[380px] h-[520px] bg-[#1e293b]/95 backdrop-blur-xl border border-[#0a988b]/30 rounded-3xl shadow-2xl flex flex-col overflow-hidden"
+            className="w-[380px] h-[520px] bg-[#1e293b]/95 backdrop-blur-xl border-2 border-[#0a988b]/50 rounded-3xl shadow-2xl flex flex-col overflow-hidden"
           >
             {/* Header */}
-            <div className="p-4 bg-[#0a988b] text-white flex items-center justify-between shadow-md">
+            <div className="p-4 bg-[#0a988b] text-white flex items-center justify-between shadow-lg border-b border-[#0a988b]/20">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md">
                   <Bot size={22} />
@@ -138,8 +138,8 @@ export const ChatAssistant: React.FC = () => {
                   className={cn(
                     "max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed shadow-sm prose prose-invert prose-sm",
                     msg.role === 'user'
-                      ? "bg-slate-700 text-white ml-auto rounded-tr-none"
-                      : "bg-[#0a988b]/20 text-slate-100 mr-auto rounded-tl-none border border-[#0a988b]/20"
+                      ? "bg-slate-700 text-white ml-auto rounded-tr-none border border-slate-600"
+                      : "bg-[#0a988b]/15 text-slate-100 mr-auto rounded-tl-none border border-[#0a988b]/30"
                   )}
                 >
                   <ReactMarkdown>{msg.content}</ReactMarkdown>
@@ -159,7 +159,7 @@ export const ChatAssistant: React.FC = () => {
             </div>
 
             {/* Input */}
-            <div className="p-4 bg-slate-800/50 border-t border-slate-700/50">
+            <div className="p-4 bg-slate-800/80 border-t border-[#0a988b]/20">
               <div className="relative flex items-center">
                 <input
                   type="text"
@@ -167,19 +167,19 @@ export const ChatAssistant: React.FC = () => {
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSend()}
                   placeholder="Posez votre question..."
-                  className="w-full pl-4 pr-12 py-3 bg-slate-900/50 border border-slate-700 rounded-2xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#0a988b]/20 focus:border-[#0a988b] transition-all shadow-inner"
+                  className="w-full pl-4 pr-12 py-3 bg-slate-900/80 border border-slate-700 rounded-2xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#0a988b]/30 focus:border-[#0a988b] transition-all shadow-inner"
                   disabled={isLoading}
                 />
                 <button
                   onClick={handleSend}
                   disabled={!input.trim() || isLoading}
-                  className="absolute right-2 w-8 h-8 bg-[#0a988b] text-white rounded-lg flex items-center justify-center hover:bg-[#0a988b]/90 disabled:opacity-50 disabled:grayscale transition-all"
+                  className="absolute right-2 w-8 h-8 bg-[#0a988b] text-white rounded-lg flex items-center justify-center hover:bg-[#0a988b]/90 disabled:opacity-50 disabled:grayscale transition-all shadow-lg shadow-[#0a988b]/20"
                 >
                   {isLoading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                 </button>
               </div>
-              <p className="text-[9px] text-center text-slate-500 mt-2 flex items-center justify-center gap-1 uppercase tracking-widest font-bold">
-                <Sparkles size={8} /> Powered by Groq & RAG
+              <p className="text-[9px] text-center text-slate-400 mt-2 flex items-center justify-center gap-1 uppercase tracking-widest font-bold">
+                <Sparkles size={10} className="text-[#ff9d17]" /> Powered by <span className="text-[#0a988b]">Groq</span> & <span className="text-[#ff9d17]">RAG</span>
               </p>
             </div>
           </motion.div>

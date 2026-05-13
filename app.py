@@ -85,6 +85,9 @@ def root():
 
 @app.post("/api/chat")
 async def chat_endpoint(request: Request):
+    if not os.environ.get("GROQ_API_KEY"):
+        return JSONResponse(status_code=500, content={"error": "GROQ_API_KEY non configurée sur le serveur."})
+
     try:
         body = await request.json()
         messages = body.get("messages", [])
@@ -93,17 +96,64 @@ async def chat_endpoint(request: Request):
 
         user_query = messages[-1]["content"]
 
-        # Simple RAG: Keyword search in CSV
-        context_jobs = "Aucun job trouvé pour cette requête."
-        if os.path.exists(PROCESSED_FILE):
-            df = pd.read_csv(PROCESSED_FILE)
-            # Basic keyword filtering
-            keywords = user_query.lower().split()
-            mask = df.apply(lambda row: any(k in str(row.values).lower() for k in keywords), axis=1)
-            filtered_df = df[mask].head(10)
+        # Stratégie de Fallback & RAG V1
+        context_jobs = "Aucun job spécifique trouvé pour cette recherche dans la base de données actuelle."
+
+        # Tentative de lecture du fichier (Fallback : check paths)
+        df = None
+        paths_to_try = [
+            PROCESSED_FILE,
+            "data/raw/jobs_senegal_raw.csv" # Second fallback
+        ]
+
+        for path in paths_to_try:
+            if os.path.exists(path):
+                try:
+                    df = pd.read_csv(path)
+                    logger.info(f"Données chargées depuis : {path}")
+                    break
+                except Exception as e:
+                    logger.error(f"Erreur lors de la lecture de {path}: {e}")
+
+        if df is not None:
+            # Nettoyage minimal pour la recherche
+            df_search = df.fillna("N/A")
+
+            # Filtrage par mots-clés (case-insensitive) sur les colonnes clés
+            # On cherche dans title, sector, location, key_skills
+            # Extraction des mots-clés significatifs (longueur > 3 ou spécifique)
+            words = [w.lower() for w in user_query.split() if len(w) > 3 or w.lower() in ["rh", "it", "cap", "btp", "cdi", "cdd"]]
+
+            if not words: # Fallback si requête trop courte
+                words = [user_query.lower()]
+
+            # On crée un masque qui vérifie si l'un des mots-clés est présent dans l'une des colonnes
+            mask = pd.Series([False] * len(df))
+            for word in words:
+                word_mask = (
+                    df_search['title'].str.contains(word, case=False, na=False, regex=False) |
+                    df_search['sector'].str.contains(word, case=False, na=False, regex=False) |
+                    df_search['location'].str.contains(word, case=False, na=False, regex=False) |
+                    df_search['key_skills'].str.contains(word, case=False, na=False, regex=False)
+                )
+                mask = mask | word_mask
+
+            filtered_df = df[mask].copy()
 
             if not filtered_df.empty:
-                context_jobs = filtered_df[['title', 'company', 'location', 'sector', 'salary_avg', 'key_skills']].to_string(index=False)
+                # Tri par date de publication (plus récent en premier)
+                if 'publish_date' in filtered_df.columns:
+                    filtered_df['publish_date'] = pd.to_datetime(filtered_df['publish_date'], errors='coerce')
+                    filtered_df = filtered_df.sort_values(by='publish_date', ascending=False)
+
+                # Top 10 résultats pour le contexte
+                top_10 = filtered_df.head(10)
+
+                # Colonnes de Contexte pour l'IA
+                cols_context = ['title', 'company', 'location', 'sector', 'key_skills', 'contract_type', 'education_level', 'min_exp', 'salary_avg', 'offer_url']
+                available_cols = [c for c in cols_context if c in top_10.columns]
+
+                context_jobs = top_10[available_cols].to_json(orient='records', force_ascii=False)
 
         system_prompt = f"""Tu es l'assistant IA de 'Sénégal Job Insights'. Ton rôle est d'aider les utilisateurs à analyser le marché de l'emploi au Sénégal.
 
