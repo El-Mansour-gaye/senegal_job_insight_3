@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { KPICard } from '../components/KPICard';
-import { EvolutionChart, DistributionChart, SectorBarChart, SalaryChart, HorizontalBarChart, SimpleBarChart } from '../components/Charts';
+import { EvolutionChart, DistributionChart, SectorBarChart, SalaryChart, HorizontalBarChart, SimpleBarChart, StackedBarChart, WordCloud } from '../components/Charts';
 import { MapChart } from '../components/MapChart';
 import { JobsDataTable } from '../components/JobsDataTable';
 import { FilterBar } from '../components/FilterBar';
@@ -91,7 +91,7 @@ export const Dashboard: React.FC = () => {
       contractCounts[job.contract_type] = (contractCounts[job.contract_type] || 0) + 1;
       companyCounts[job.company] = (companyCounts[job.company] || 0) + 1;
 
-      const edu = job.min_education || 'N/A';
+      const edu = (job.min_education || 'N/A').replace('Master / Ingénieur / Bac + 5', 'Master').replace('Licence / Bac + 3', 'Licence');
       educationCounts[edu] = (educationCounts[edu] || 0) + 1;
 
       const exp = job.experience_level || 'N/A';
@@ -174,21 +174,72 @@ export const Dashboard: React.FC = () => {
       : 0;
 
     const sectorSalaries: Record<string, { total: number; count: number }> = {};
+    const sectorEducation: Record<string, { totalRank: number; count: number }> = {};
+
     filteredJobs.forEach(job => {
       if (job.salary_avg) {
         if (!sectorSalaries[job.sector]) sectorSalaries[job.sector] = { total: 0, count: 0 };
         sectorSalaries[job.sector].total += job.salary_avg;
         sectorSalaries[job.sector].count += 1;
       }
+      if (job.education_rank !== undefined) {
+        if (!sectorEducation[job.sector]) sectorEducation[job.sector] = { totalRank: 0, count: 0 };
+        sectorEducation[job.sector].totalRank += job.education_rank;
+        sectorEducation[job.sector].count += 1;
+      }
     });
+
     const salaryBySector = Object.entries(sectorSalaries)
       .map(([name, data]) => ({ name, value: Math.round(data.total / data.count) }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 5);
 
+    // Cross-tabulation Education vs Experience
+    const eduExpMap: Record<string, Record<string, number>> = {};
+
+    filteredJobs.forEach(job => {
+      const edu = (job.min_education || 'N/A').replace('Master / Ingénieur / Bac + 5', 'Master').replace('Licence / Bac + 3', 'Licence');
+
+      // Clean experience levels for the chart to avoid legend overlap
+      let exp = job.experience_level || 'N/A';
+      exp = exp.replace('Expérience entre ', '')
+               .replace(' et ', '-')
+               .replace(' ans', 'a')
+               .replace('Débutant < 2 a', '< 2a')
+               .replace('Expérience > 10 a', '> 10a')
+               .replace('Etudiant, ', '')
+               .replace('jeune diplômé', 'JD')
+               .replace(' & ', '/');
+
+      if (!eduExpMap[edu]) eduExpMap[edu] = {};
+      eduExpMap[edu][exp] = (eduExpMap[edu][exp] || 0) + 1;
+    });
+
+    const educationExperienceData = Object.entries(eduExpMap).map(([edu, exps]) => ({
+      name: edu,
+      ...exps
+    })).sort((a, b) => (educationCounts[b.name] || 0) - (educationCounts[a.name] || 0));
+
+    const expLevels = Array.from(new Set(
+      Object.values(eduExpMap).flatMap(exps => Object.keys(exps))
+    ));
+
+    const totalCDI = contractCounts['CDI'] || 0;
+    const percentCDI = Math.round((totalCDI / filteredJobs.length) * 100);
+
+    // Market Tension: High Volume, Low Education Rank
+    const tensionData = Object.entries(sectorEducation)
+      .map(([sector, data]) => ({
+        sector,
+        score: (sectorCounts[sector] || 0) / (data.totalRank / data.count + 1)
+      }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5);
+
     return {
       totalJobs: filteredJobs.length,
       avgSalary,
+      percentCDI,
       dominantSector,
       topCity,
       topSkill,
@@ -208,7 +259,14 @@ export const Dashboard: React.FC = () => {
       })),
       monthlyEvolution,
       monthlyGrowth: filteredMonthlyGrowth,
-      salaryBySector
+      salaryBySector,
+      educationExperienceData,
+      experienceLevels: expLevels,
+      tensionData,
+      wordCloudData: Object.entries(skillCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 30)
+        .map(([name, value]) => ({ name, value }))
     };
   }, [filteredJobs]);
 
@@ -280,12 +338,10 @@ export const Dashboard: React.FC = () => {
           color="secondary"
         />
         <KPICard
-          title={persona === 'analyst' ? "Croissance" : "Tendance"}
-          value={`${dashboardStats.monthlyGrowth > 0 ? '+' : ''}${dashboardStats.monthlyGrowth}%`}
+          title={persona === 'analyst' ? "Stabilité (CDI)" : "% CDI"}
+          value={`${dashboardStats.percentCDI}%`}
           icon={TrendingUp}
-          trend={`${Math.abs(dashboardStats.monthlyGrowth)}%`}
-          trendUp={dashboardStats.monthlyGrowth >= 0}
-          description={persona === 'analyst' ? "Évolution mensuelle globale" : "Évolution du volume d'offres"}
+          description={persona === 'analyst' ? "Part des contrats stables" : "Taux de CDI sur le marché"}
           color="secondary"
         />
         <KPICard
@@ -298,101 +354,77 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {persona === 'analyst' ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
-            <MapChart data={dashboardStats.geoStats} title="Répartition Géographique des Opportunités" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <EvolutionChart data={dashboardStats.monthlyEvolution} title="Dynamique des recrutements" />
-              <DistributionChart data={dashboardStats.contractDistribution} title="Types de contrats" />
+        <div className="space-y-8">
+          <EvolutionChart data={dashboardStats.monthlyEvolution} title="Évolution Temporelle des Recrutements" />
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <MapChart data={dashboardStats.geoStats} title="Localisation des Opportunités au Sénégal" />
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <SimpleBarChart data={dashboardStats.educationDistribution} title="Structure par Diplôme" color="#0a988b" />
-              <SimpleBarChart data={dashboardStats.experienceDistribution} title="Structure par Expérience" color="#ff9d17" />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="glass-card p-8 rounded-3xl">
-                <h4 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                  <Star className="text-secondary" strokeWidth={1.5} /> Top 10 Compétences
-                </h4>
-                <div className="space-y-4">
-                  {dashboardStats.top10Skills.map((skill) => (
-                    <div key={skill.name} className="space-y-1">
-                      <div className="flex justify-between text-xs font-bold text-slate-700">
-                        <span>{skill.name}</span>
-                        <span className="text-primary">{Math.round((skill.value / dashboardStats.totalJobs) * 100)}%</span>
-                      </div>
-                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          whileInView={{ width: `${Math.min(100, (skill.value / dashboardStats.totalJobs) * 200)}%` }}
-                          className="h-full bg-primary rounded-full"
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="glass-card p-8 rounded-3xl flex flex-col">
-                <h4 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                  <Brain className="text-primary" strokeWidth={1.5} /> Radar des Compétences
-                </h4>
-                <div className="flex-1 min-h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RadarChart cx="50%" cy="50%" outerRadius="80%" data={dashboardStats.radarSkills}>
-                      <PolarGrid stroke="#e2e8f0" />
-                      <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 600 }} />
-                      <Radar name="Fréquence" dataKey="A" stroke="#0a988b" fill="#0a988b" fillOpacity={0.2} />
-                      <RechartsTooltip />
-                    </RadarChart>
-                  </ResponsiveContainer>
+            <div className="space-y-8">
+              <SectorBarChart data={dashboardStats.sectorDistribution} title="Secteurs Dominants" height={500} />
+              <div className="p-8 bg-white rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
+                <div className="relative z-10">
+                  <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-slate-900">
+                    <Award className="text-secondary" strokeWidth={1.5} /> Note de l'Expert
+                  </h3>
+                  <p className="text-slate-600 text-sm leading-relaxed mb-4 italic font-medium">
+                    "Le marché sénégalais montre une forte résilience dans le secteur {dashboardStats.dominantSector}.
+                    La ville de {dashboardStats.topCity} reste le poumon économique."
+                  </p>
+                  <div className="bg-primary/5 p-3 rounded-xl border border-primary/10 text-xs font-bold text-slate-700">
+                    <span className="text-primary">Indice de Tension :</span> Secteur {dashboardStats.tensionData[0]?.sector} en forte demande.
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="space-y-8">
-            <SectorBarChart data={dashboardStats.sectorDistribution} title="Volume par secteur" />
-            <SalaryChart data={dashboardStats.salaryBySector} title="Salaire par Secteur" />
-
-            <div className="p-8 bg-white rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
-              <div className="relative z-10">
-                <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-slate-900">
-                  <Award className="text-secondary" strokeWidth={1.5} /> Note de l'Expert
-                </h3>
-                <p className="text-slate-600 text-sm leading-relaxed mb-4 italic font-medium">
-                  "Le marché sénégalais montre une forte résilience dans le secteur {dashboardStats.dominantSector}.
-                  La ville de {dashboardStats.topCity} reste le poumon économique."
-                </p>
-                <div className="bg-primary/5 p-3 rounded-xl border border-primary/10 text-xs font-bold text-slate-700">
-                  <span className="text-primary">Conseil :</span> Misez sur {dashboardStats.topSkill} pour booster votre profil.
-                </div>
-              </div>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <DistributionChart data={dashboardStats.contractDistribution} title="Types de Contrats (Vision Macro)" />
+            <SalaryChart data={dashboardStats.salaryBySector} title="Salaires Moyens par Secteur" />
           </div>
         </div>
       ) : (
         <div className="space-y-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
+              <WordCloud data={dashboardStats.wordCloudData} title="Compétences & Mots-Clés du Marché" />
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                 <SimpleBarChart data={dashboardStats.educationDistribution} title="Niveau d'études" color="#0a988b" />
-                 <SimpleBarChart data={dashboardStats.experienceDistribution} title="Expérience demandée" color="#ff9d17" />
+                <div className="glass-card p-8 rounded-3xl flex flex-col h-[450px]">
+                  <h4 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                    <Brain className="text-primary" strokeWidth={1.5} /> Radar des Compétences
+                  </h4>
+                  <div className="flex-1 min-h-0">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RadarChart cx="50%" cy="50%" outerRadius="80%" data={dashboardStats.radarSkills}>
+                        <PolarGrid stroke="#e2e8f0" />
+                        <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 600 }} />
+                        <Radar name="Fréquence" dataKey="A" stroke="#0a988b" fill="#0a988b" fillOpacity={0.2} />
+                        <RechartsTooltip />
+                      </RadarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                <StackedBarChart
+                  data={dashboardStats.educationExperienceData}
+                  title="Barrières à l'entrée : Diplôme vs Expérience"
+                  keys={dashboardStats.experienceLevels}
+                  colors={['#0a988b', '#ff9d17', '#f44a3c', '#3b82f6', '#8b5cf6', '#06b6d4', '#f97316']}
+                />
               </div>
-              <HorizontalBarChart data={dashboardStats.topSkillsDetailed} title="Compétences recherchées" height={500} limit={12} barColor="#0a988b" secondaryColor="#0a988b" />
-              <MapChart data={dashboardStats.geoStats} title="Où postuler ?" />
             </div>
 
             <div className="space-y-8">
               <div className="glass-card p-8 rounded-3xl">
-                <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
                   <Award className="text-primary" strokeWidth={1.5} /> Top Recruteurs
                 </h3>
                 <div className="space-y-4">
-                   {dashboardStats.topCompanies.slice(0, 5).map((company, i) => (
+                   {dashboardStats.topCompanies.slice(0, 10).map((company, i) => (
                      <div key={company.name} className="flex items-center justify-between group">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-xs font-black text-slate-400 group-hover:bg-primary group-hover:text-white transition-colors">
@@ -400,12 +432,23 @@ export const Dashboard: React.FC = () => {
                           </div>
                           <span className="text-sm font-bold text-slate-700 truncate max-w-[150px]">{company.name}</span>
                         </div>
-                        <span className="text-xs font-black bg-slate-100 px-2 py-1 rounded-lg text-slate-500">{company.value} offres</span>
+                        <span className="text-xs font-black bg-slate-100 px-2 py-1 rounded-lg text-slate-500">{company.value}</span>
                      </div>
                    ))}
                 </div>
               </div>
-              <DistributionChart data={dashboardStats.contractDistribution} title="Marché des contrats" />
+
+              <div className="p-8 bg-primary text-white rounded-3xl shadow-lg relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
+                <div className="relative z-10">
+                  <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                    <Zap className="text-white" strokeWidth={1.5} /> Guide de l'IA
+                  </h3>
+                  <p className="text-white/80 text-sm leading-relaxed mb-4 font-medium">
+                    "Utilisez l'Assistant IA en bas à droite pour poser des questions spécifiques sur ces tendances ou pour optimiser votre CV."
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
