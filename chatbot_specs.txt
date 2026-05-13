@@ -1,0 +1,40 @@
+# Sénégal Job Insights - Spécifications de l'Assistant IA (Chatbot)
+
+## 1. Fonctionnalités
+L'assistant IA est conçu pour interagir avec les utilisateurs (décideurs et candidats) afin de fournir des insights en temps réel sur le marché de l'emploi sénégalais.
+- **Réponses contextualisées** : Utilise une base de données locale d'offres d'emploi pour répondre précisément aux questions sur les salaires, les secteurs qui recrutent, et les compétences demandées.
+- **Support Streaming** : Les réponses s'affichent progressivement (effet machine à écrire) pour une expérience fluide.
+- **Rendu Markdown** : Supporte le formatage riche (gras, listes, etc.) pour une meilleure lisibilité.
+- **Interface Intelligente** : Bouton flottant avec indicateur de statut, fenêtre de chat style glassmorphism sombre.
+
+## 2. Système RAG (Retrieval-Augmented Generation)
+L'intelligence de l'assistant repose sur un pipeline RAG simplifié mais efficace :
+- **Source de données** : `public/data/jobs_senegal_processed.csv`.
+- **Mécanisme de récupération** : Recherche par mots-clés dans les colonnes `title`, `company`, `location`, `sector` et `key_skills`.
+- **Filtrage** : Extraction des 10 jobs les plus pertinents par rapport à la requête utilisateur.
+- **Injection de contexte** : Les données filtrées sont formatées en texte et injectées directement dans le prompt système envoyé au modèle LLM.
+
+## 3. Configuration & Prompts
+### Modèle LLM
+- **Moteur** : Groq SDK.
+- **Modèle par défaut** : `llama-3.3-70b-versatile` (configurable via `GROQ_MODEL`).
+
+### Prompt Système
+```text
+Tu es l'assistant IA de 'Sénégal Job Insights'. Ton rôle est d'aider les utilisateurs à analyser le marché de l'emploi au Sénégal.
+
+Voici un extrait des données pertinentes actuelles issues de notre base de données :
+[CONTEXTE_DES_JOBS_FILTRÉS]
+
+Instructions :
+1. Réponds de manière professionnelle et concise.
+2. Utilise les données fournies pour étayer tes réponses.
+3. Si l'utilisateur pose une question sur un métier spécifique, une ville ou un secteur, réfère-toi aux données ci-dessus.
+4. Si les données ne contiennent pas la réponse, précise-le tout en restant utile.
+5. Ne mentionne pas que tu as reçu un 'extrait de données' ou un 'context', agis comme si tu avais accès à toute la base.
+```
+
+## 4. Variables d'Environnement Requises
+- `GROQ_API_KEY` : Clé API pour accéder aux modèles Groq.
+- `GROQ_MODEL` : (Optionnel) Nom du modèle à utiliser.
+- `VITE_API_BASE_URL` : URL du backend Render pour la communication frontend-backend.
