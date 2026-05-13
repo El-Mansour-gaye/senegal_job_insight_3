@@ -18,6 +18,7 @@ export interface JobOffer {
   scraped_date: string;
   offer_url: string;
   source: string;
+  education_rank?: number;
 }
 
 export interface DashboardStats {

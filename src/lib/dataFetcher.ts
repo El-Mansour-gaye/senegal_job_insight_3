@@ -113,7 +113,8 @@ export const fetchJobsFromCSV = async (): Promise<JobOffer[]> => {
             publish_date: row.publish_date || new Date().toISOString(),
             scraped_date: row.scraped_date || new Date().toISOString(),
             offer_url: row.offer_url || '#',
-            source: row.source || 'Scraper'
+            source: row.source || 'Scraper',
+            education_rank: row.education_rank ? parseInt(row.education_rank) : 0
           }));
           resolve(parsedData as JobOffer[]);
         },

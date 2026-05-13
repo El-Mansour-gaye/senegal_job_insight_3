@@ -14,6 +14,7 @@ import {
   Tooltip, 
   Legend 
 } from 'recharts';
+import { motion } from 'motion/react';
 
 interface ChartProps {
   data: any[];
@@ -205,6 +206,66 @@ export const SalaryChart: React.FC<ChartProps> = ({ data, title }) => {
           </Bar>
         </BarChart>
       </ResponsiveContainer>
+    </div>
+  );
+};
+
+export const StackedBarChart: React.FC<ChartProps & { keys: string[], colors: string[] }> = ({ data, title, keys, colors }) => {
+  if (!data || data.length === 0) return null;
+
+  return (
+    <div className="glass-card p-6 rounded-2xl h-[450px]">
+      <h4 className="text-lg font-bold text-slate-900 mb-6">{title}</h4>
+      <ResponsiveContainer width="100%" height="85%">
+        <BarChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+          <XAxis
+            dataKey="name"
+            axisLine={false}
+            tickLine={false}
+            tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }}
+          />
+          <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} />
+          <Tooltip
+             contentStyle={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+             itemStyle={{ color: '#1e293b' }}
+          />
+          <Legend />
+          {keys.map((key, index) => (
+            <Bar key={key} dataKey={key} stackId="a" fill={colors[index % colors.length]} radius={index === keys.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]} />
+          ))}
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
+
+export const WordCloud: React.FC<ChartProps> = ({ data, title }) => {
+  if (!data || data.length === 0) return null;
+
+  return (
+    <div className="glass-card p-8 rounded-3xl min-h-[400px] flex flex-col">
+      <h4 className="text-xl font-bold text-slate-900 mb-8">{title}</h4>
+      <div className="flex-1 flex flex-wrap items-center justify-center gap-4">
+        {data.map((item, i) => {
+          const fontSize = Math.max(12, Math.min(32, 10 + (item.value / data[0].value) * 30));
+          const opacity = 0.5 + (item.value / data[0].value) * 0.5;
+          const colors = ['text-primary', 'text-secondary', 'text-accent', 'text-blue-500', 'text-emerald-500'];
+
+          return (
+            <motion.span
+              key={item.name}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity }}
+              transition={{ delay: i * 0.05 }}
+              style={{ fontSize }}
+              className={`font-black cursor-default hover:scale-110 transition-transform ${colors[i % colors.length]}`}
+            >
+              {item.name}
+            </motion.span>
+          );
+        })}
+      </div>
     </div>
   );
 };
