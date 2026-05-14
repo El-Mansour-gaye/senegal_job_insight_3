@@ -1,0 +1,28 @@
+# Fonctionnement de l'Assistant IA (Chatbot) - Sénégal Job Insights
+
+## 1. Architecture unifiée sur Vercel
+Le projet est désormais configuré pour fonctionner entièrement sur **Vercel** :
+- **Frontend (React)** : Servi comme application SPA.
+- **Backend (FastAPI/Python)** : Déployé via les **Vercel Serverless Functions**. Les requêtes vers `/api/*` sont automatiquement redirigées vers le backend Python.
+
+## 2. Le Pipeline RAG (Retrieval-Augmented Generation)
+Le chatbot utilise les données locales pour répondre :
+1. **Requête** : L'utilisateur pose une question.
+2. **Recherche** : Le backend cherche dans le fichier `public/data/jobs_senegal_processed.csv` (accessible directement sur Vercel) les 10 offres les plus pertinentes.
+3. **Contexte** : Ces offres sont injectées dans le prompt envoyé à Groq.
+4. **Génération** : L'IA répond en utilisant ces données réelles.
+
+## 3. Configuration des Variables d'Environnement
+Puisque le backend tourne maintenant sur Vercel, vous devez configurer les variables suivantes directement dans le tableau de bord **Vercel** (Settings > Environment Variables) :
+- `GROQ_API_KEY` : Votre clé API Groq.
+- `GROQ_MODEL` : `llama-3.3-70b-versatile` (ou un autre modèle Groq compatible).
+
+## 4. Pourquoi ce choix ?
+L'unification sur Vercel permet :
+- Une latence réduite (pas de communication entre deux clouds différents).
+- Une gestion simplifiée des variables d'environnement (tout est au même endroit).
+- L'utilisation directe des fichiers de données présents dans le dossier `public/`.
+
+## 5. Notes Techniques
+- Le fichier `api/index.py` sert de pont entre Vercel et FastAPI.
+- Le scheduler (tâches programmées) est désactivé sur Vercel car les fonctions serverless sont éphémères. Le scraping doit être lancé manuellement via l'endpoint `/api/scrape` ou via une GitHub Action.
