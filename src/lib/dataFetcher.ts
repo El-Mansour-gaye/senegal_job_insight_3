@@ -3,6 +3,9 @@ import { JobOffer } from '../types';
 
 // En production, cette URL sera celle de votre service Render (ex: https://senegal-job-insights.onrender.com)
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+if (!API_BASE_URL) {
+  console.warn("[DataFetcher] VITE_API_BASE_URL est manquante. Les requêtes utiliseront des chemins relatifs (proxy possible en dev).");
+}
 
 export const fetchJobsFromCSV = async (): Promise<JobOffer[]> => {
   try {

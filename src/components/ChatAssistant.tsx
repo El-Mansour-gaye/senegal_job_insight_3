@@ -10,6 +10,9 @@ interface Message {
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+if (!API_BASE_URL) {
+  console.warn("[ChatAssistant] VITE_API_BASE_URL est manquante. Les requêtes utiliseront des chemins relatifs (proxy possible en dev).");
+}
 
 export const ChatAssistant: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -45,7 +48,14 @@ export const ChatAssistant: React.FC = () => {
         body: JSON.stringify({ messages: newMessages }),
       });
 
-      if (!response.ok) throw new Error('Failed to fetch response');
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Le service de chat est indisponible (404). Vérifiez la configuration du backend.');
+        } else if (response.status === 500) {
+          throw new Error('Erreur interne du serveur de chat (500).');
+        }
+        throw new Error(`Erreur lors de la communication avec le chat (${response.status})`);
+      }
 
       const reader = response.body?.getReader();
       if (!reader) throw new Error('No reader available');
@@ -70,11 +80,11 @@ export const ChatAssistant: React.FC = () => {
           return prev;
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Chat Error:', error);
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: "Désolé, une erreur est survenue. Veuillez vérifier votre connexion ou réessayer plus tard."
+        content: error.message || "Désolé, une erreur est survenue. Veuillez vérifier votre connexion ou réessayer plus tard."
       }]);
     } finally {
       setIsLoading(false);
