@@ -25,7 +25,8 @@ app = FastAPI(
 )
 
 # Configuration Groq
-client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
 
 # Configuration du Scheduler
@@ -76,16 +77,16 @@ def root():
         "status": "online",
         "message": "Backend Senegal Job Insights opérationnel sur Render",
         "endpoints": {
-            "scrape": "/scrape (POST) - Lance le pipeline",
-            "download": "/download/csv (GET) - Télécharge le fichier pour Power BI",
-            "status": "/status (GET) - État du fichier de données",
+            "scrape": "/api/scrape (POST) - Lance le pipeline",
+            "download": "/api/download/csv (GET) - Télécharge le fichier pour Power BI",
+            "status": "/api/status (GET) - État du fichier de données",
             "chat": "/api/chat (POST) - Chatbot avec RAG"
         }
     }
 
 @app.post("/api/chat")
 async def chat_endpoint(request: Request):
-    if not os.environ.get("GROQ_API_KEY"):
+    if not client:
         return JSONResponse(status_code=500, content={"error": "GROQ_API_KEY non configurée sur le serveur."})
 
     try:
@@ -186,13 +187,13 @@ Instructions :
         logger.error(f"Error in chat endpoint: {e}")
         return JSONResponse(status_code=500, content={"error": str(e)})
 
-@app.post("/scrape")
+@app.post("/api/scrape")
 async def trigger_scrape(background_tasks: BackgroundTasks):
     """Lance le scraping et le nettoyage en arrière-plan."""
     background_tasks.add_task(run_scraper_pipeline)
     return {"message": "Le processus de scraping et de nettoyage a été lancé en arrière-plan."}
 
-@app.api_route("/status", methods=["GET", "POST"])
+@app.api_route("/api/status", methods=["GET", "POST"])
 def get_status():
     """Vérifie si les données sont prêtes."""
     if os.path.exists(PROCESSED_FILE):
@@ -204,7 +205,7 @@ def get_status():
         }
     return {"ready": False, "message": "Aucune donnée traitée disponible."}
 
-@app.get("/download/csv")
+@app.get("/api/download/csv")
 def download_csv():
     """Permet à Power BI ou au frontend de récupérer le dernier CSV."""
     if os.path.exists(PROCESSED_FILE):
