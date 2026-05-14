@@ -54,7 +54,7 @@ export const EvolutionChart: React.FC<ChartProps> = ({ data, title }) => {
           />
           <Area 
             type="monotone" 
-            dataKey="count" 
+            dataKey="value"
             stroke="#0a988b" 
             strokeWidth={3}
             fillOpacity={1} 

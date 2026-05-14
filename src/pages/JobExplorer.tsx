@@ -34,13 +34,13 @@ export const JobExplorer: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in pb-24">
-      <div>
-        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Explorez les opportunités</h1>
-        <p className="text-slate-500 mt-1 font-bold">Trouvez le job qui vous correspond parmi des milliers d'offres.</p>
-      </div>
-
+    <>
       <FilterBar filters={filters} setFilters={setFilters} />
+      <div className="space-y-6 animate-fade-in pb-24">
+        <div>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Explorez les opportunités</h1>
+          <p className="text-slate-500 mt-1 font-bold">Trouvez le job qui vous correspond parmi des milliers d'offres.</p>
+        </div>
 
       <div className="flex items-center justify-between text-sm text-slate-500 mb-4 px-2">
         <p><span className="font-black text-slate-900">{filteredJobs.length}</span> offres correspondantes</p>
@@ -72,6 +72,7 @@ export const JobExplorer: React.FC = () => {
         )
         }
       </div>
-    </div>
+      </div>
+    </>
   );
 };
