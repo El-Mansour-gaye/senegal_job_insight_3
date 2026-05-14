@@ -12,7 +12,7 @@ export const fetchJobsFromCSV = async (): Promise<JobOffer[]> => {
     // Sur Vercel, on préfère charger le fichier localement s'il existe dans public/data
     // On ajoute un timestamp pour éviter le cache navigateur
     const localUrl = `/data/jobs_senegal_processed.csv?t=${Date.now()}`;
-    const remoteUrl = API_BASE_URL ? `${API_BASE_URL}/download/csv?t=${Date.now()}` : null;
+    const remoteUrl = API_BASE_URL ? `${API_BASE_URL}/api/download/csv?t=${Date.now()}` : null;
     
     let response;
 
