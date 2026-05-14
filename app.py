@@ -122,6 +122,17 @@ async def chat_endpoint(request: Request):
                     logger.error(f"Erreur lors de la lecture de {path}: {e}")
 
         if df is not None:
+            # Stats globales pour donner du contexte à l'IA même sans recherche
+            total_jobs = len(df)
+            last_scraped = df['scraped_date'].max() if 'scraped_date' in df.columns else "N/A"
+            top_sectors = df['sector'].value_counts().head(5).to_dict() if 'sector' in df.columns else {}
+
+            market_summary = {
+                "total_offers": total_jobs,
+                "data_freshness": f"Dernière mise à jour le {last_scraped}",
+                "dominant_sectors": top_sectors
+            }
+
             # 1. Normalisation et Synonymes
             query = user_query.lower().strip()
             synonyms = {
@@ -129,7 +140,9 @@ async def chat_endpoint(request: Request):
                 "bac+5": "master ingénieur dea m2",
                 "bac+2": "dut bts deug",
                 "it": "informatique développeur digital tech",
-                "rh": "ressources humaines recrutement personnel"
+                "rh": "ressources humaines recrutement personnel",
+                "tendance": "récent dynamique actualité",
+                "offre": "poste job recrutement"
             }
 
             expanded_query = query
@@ -158,8 +171,16 @@ async def chat_endpoint(request: Request):
             # 4. Filtrage par score de confiance (> 40%)
             relevant_indices = [res[2] for res in fuzzy_results if res[1] > 40]
 
+            # Fallback : si aucun résultat flou, prendre les 10 plus récents
+            if not relevant_indices:
+                logger.info("Aucun résultat flou pertinent. Fallback sur les jobs récents.")
+                if 'publish_date' in df.columns:
+                    df['publish_date'] = pd.to_datetime(df['publish_date'], errors='coerce')
+                    recent_df = df.sort_values(by='publish_date', ascending=False).head(10)
+                    relevant_indices = recent_df.index.tolist()
+
             if relevant_indices:
-                filtered_df = df.iloc[relevant_indices].copy()
+                filtered_df = df.loc[relevant_indices].copy()
 
                 # Tri par date de publication
                 if 'publish_date' in filtered_df.columns:
@@ -168,7 +189,13 @@ async def chat_endpoint(request: Request):
 
                 cols_context = ['title', 'company', 'location', 'sector', 'key_skills', 'contract_type', 'education_level', 'min_exp', 'salary_avg', 'offer_url']
                 available_cols = [c for c in cols_context if c in filtered_df.columns]
-                context_jobs = filtered_df[available_cols].to_json(orient='records', force_ascii=False)
+
+                # On combine les jobs et les stats globales
+                context_data = {
+                    "market_metadata": market_summary,
+                    "specific_jobs": filtered_df[available_cols].to_dict(orient='records')
+                }
+                context_jobs = json.dumps(context_data, ensure_ascii=False)
 
         system_prompt = f"""Tu es l'Expert Analyste de 'Sénégal Job IA'. Ta mission est d'aider les candidats à décrypter le marché de l'emploi au Sénégal avec précision et professionnalisme.
 
