@@ -1,0 +1,26 @@
+# Fonctionnement de l'Assistant IA (Chatbot) - Sénégal Job Insights
+
+## 1. Architecture Globale
+Le projet est divisé en deux parties :
+- **Frontend (React/Vite)** : Déployé sur **Vercel**. C'est l'interface que vous voyez.
+- **Backend (FastAPI/Python)** : Déployé sur **Render**. C'est lui qui gère l'intelligence (Groq) et l'accès aux données.
+
+## 2. Le Pipeline RAG (Retrieval-Augmented Generation)
+Le chatbot n'invente pas les réponses, il utilise une technique appelée RAG :
+1. **Requête** : L'utilisateur pose une question (ex: "Quels sont les jobs en informatique ?").
+2. **Recherche** : Le backend cherche dans le fichier `public/data/jobs_senegal_processed.csv` les 10 offres les plus pertinentes en utilisant des mots-clés.
+3. **Contexte** : Ces 10 offres sont transformées en texte et envoyées au modèle d'IA (Llama 3 via Groq).
+4. **Génération** : L'IA utilise ces données réelles pour répondre précisément à l'utilisateur.
+
+## 3. Pourquoi l'erreur 500 ?
+Si vous voyez "Erreur interne du serveur (500)", cela signifie généralement que :
+- **GROQ_API_KEY est manquante** : La clé API Groq n'est pas configurée dans les variables d'environnement de votre service sur **Render**.
+- **Important** : Les variables `GROQ_API_KEY` et `GROQ_MODEL` doivent être configurées sur **Render** (le backend), et non sur Vercel.
+
+## 4. Configuration Requise (sur Render)
+Pour que le chat fonctionne, vous devez ajouter ces variables dans le tableau de bord Render :
+- `GROQ_API_KEY` : Votre clé API obtenue sur https://console.groq.com/
+- `GROQ_MODEL` : `llama-3.3-70b-versatile` (recommandé)
+
+## 5. Flux de Données
+Le chatbot utilise en priorité le fichier `public/data/jobs_senegal_processed.csv`. Si ce fichier n'est pas présent sur le serveur au moment de la requête, il tente de lire le fichier brut `data/raw/jobs_senegal_raw.csv`.
