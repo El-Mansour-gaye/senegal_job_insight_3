@@ -49,12 +49,23 @@ export const ChatAssistant: React.FC = () => {
       });
 
       if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error('Le service de chat est indisponible (404). Vérifiez la configuration du backend.');
-        } else if (response.status === 500) {
-          throw new Error('Erreur interne du serveur de chat (500).');
+        let errorMessage = `Erreur lors de la communication avec le chat (${response.status})`;
+        try {
+          const errorData = await response.json();
+          if (errorData.error) {
+            errorMessage = errorData.error;
+          } else if (errorData.message) {
+            errorMessage = errorData.message;
+          }
+        } catch (e) {
+          // Si le parsing JSON échoue, on utilise des messages génériques
+          if (response.status === 404) {
+            errorMessage = 'Le service de chat est indisponible (404). Vérifiez la configuration du backend.';
+          } else if (response.status === 500) {
+            errorMessage = 'Erreur interne du serveur de chat (500).';
+          }
         }
-        throw new Error(`Erreur lors de la communication avec le chat (${response.status})`);
+        throw new Error(errorMessage);
       }
 
       const reader = response.body?.getReader();
