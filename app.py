@@ -40,23 +40,27 @@ def scheduled_scraping():
     except Exception as e:
         logger.error(f"Erreur lors du scraping programmé: {e}")
 
-@app.on_event("startup")
-def start_scheduler():
-    # Ajoute la tâche toutes les 24 heures
-    scheduler.add_job(
-        scheduled_scraping,
-        trigger=IntervalTrigger(hours=24),
-        id="job_scraping",
-        name="Scraping quotidien",
-        replace_existing=True
-    )
-    scheduler.start()
-    logger.info("Scheduler démarré.")
+# Le scheduler ne fonctionne pas sur Vercel (Serverless), on l'active uniquement en local ou sur Render
+if not os.environ.get("VERCEL"):
+    @app.on_event("startup")
+    def start_scheduler():
+        # Ajoute la tâche toutes les 24 heures
+        scheduler.add_job(
+            scheduled_scraping,
+            trigger=IntervalTrigger(hours=24),
+            id="job_scraping",
+            name="Scraping quotidien",
+            replace_existing=True
+        )
+        scheduler.start()
+        logger.info("Scheduler démarré.")
 
-@app.on_event("shutdown")
-def stop_scheduler():
-    scheduler.shutdown()
-    logger.info("Scheduler arrêté.")
+    @app.on_event("shutdown")
+    def stop_scheduler():
+        scheduler.shutdown()
+        logger.info("Scheduler arrêté.")
+else:
+    logger.info("Environnement Vercel détecté : Scheduler désactivé.")
 
 # Configuration CORS pour autoriser le Frontend (Vercel)
 app.add_middleware(
@@ -68,7 +72,8 @@ app.add_middleware(
 )
 
 # Dossier où sont stockées les données
-DATA_DIR = "public/data"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, "public", "data")
 PROCESSED_FILE = os.path.join(DATA_DIR, "jobs_senegal_processed.csv")
 
 @app.get("/")
