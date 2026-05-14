@@ -301,26 +301,26 @@ export const Dashboard: React.FC = () => {
   if (!dashboardStats) return <div>Pas de données.</div>;
 
   return (
-    <div className="space-y-8 animate-fade-in pb-24" id="dashboard-content">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-            {persona === 'analyst' ? <LayoutDashboard className="text-primary" strokeWidth={1.5} /> : <Users className="text-primary" strokeWidth={1.5} />}
-            Vue {persona === 'analyst' ? 'Décideur' : 'Candidat'}
-          </h2>
-          <p className="text-slate-500 mt-1 text-sm font-bold">
-            {persona === 'analyst' 
-              ? "Intelligence de marché : Analyses et tendances stratégiques."
-              : "Parcours carrière : Opportunités et insights pour candidats."}
-          </p>
-        </div>
-      </div>
-
+    <>
       <FilterBar
         filters={{...filters, search: ''}}
         setFilters={(f) => setFilters({sector: f.sector, city: f.city, contract: f.contract})}
         showSearch={false}
       />
+      <div className="space-y-8 animate-fade-in pb-24" id="dashboard-content">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+              {persona === 'analyst' ? <LayoutDashboard className="text-primary" strokeWidth={1.5} /> : <Users className="text-primary" strokeWidth={1.5} />}
+              Vue {persona === 'analyst' ? 'Décideur' : 'Candidat'}
+            </h2>
+            <p className="text-slate-500 mt-1 text-sm font-bold">
+              {persona === 'analyst'
+                ? "Intelligence de marché : Analyses et tendances stratégiques."
+                : "Parcours carrière : Opportunités et insights pour candidats."}
+            </p>
+          </div>
+        </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <KPICard
@@ -488,6 +488,7 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
       </motion.div>
-    </div>
+      </div>
+    </>
   );
 };
