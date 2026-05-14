@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { MessageSquare, Send, X, Bot, Sparkles, Loader2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import ReactMarkdown from 'react-markdown';
+import { handleLocalChat } from '../lib/localChat';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -42,6 +43,7 @@ export const ChatAssistant: React.FC = () => {
     setIsLoading(true);
 
     try {
+      // Tentative de connexion au backend
       const response = await fetch(`${API_BASE_URL}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -49,9 +51,13 @@ export const ChatAssistant: React.FC = () => {
       });
 
       if (!response.ok) {
+        // Si 404, on bascule sur le chat local (Frontend RAG)
         if (response.status === 404) {
-          throw new Error('Le service de chat est indisponible (404). Vérifiez la configuration du backend.');
-        } else if (response.status === 500) {
+          console.info("[ChatAssistant] Backend indisponible (404). Basculement vers le RAG local...");
+          return await executeLocalChat(newMessages);
+        }
+
+        if (response.status === 500) {
           throw new Error('Erreur interne du serveur de chat (500).');
         }
         throw new Error(`Erreur lors de la communication avec le chat (${response.status})`);
@@ -81,13 +87,47 @@ export const ChatAssistant: React.FC = () => {
         });
       }
     } catch (error: any) {
-      console.error('Chat Error:', error);
+      console.warn('Chat Backend Error:', error);
+
+      // En cas d'erreur réseau ou autre, on tente aussi le mode local comme ultime recours
+      if (import.meta.env.VITE_GEMINI_API_KEY) {
+        console.info("[ChatAssistant] Erreur backend. Tentative de secours via le RAG local...");
+        return await executeLocalChat(newMessages);
+      }
+
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: error.message || "Désolé, une erreur est survenue. Veuillez vérifier votre connexion ou réessayer plus tard."
       }]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const executeLocalChat = async (history: Message[]) => {
+    setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
+    let assistantContent = '';
+
+    try {
+      await handleLocalChat(history, (chunk) => {
+        assistantContent += chunk;
+        setMessages(prev => {
+          const last = prev[prev.length - 1];
+          if (last.role === 'assistant') {
+            return [...prev.slice(0, -1), { ...last, content: assistantContent }];
+          }
+          return prev;
+        });
+      });
+    } catch (err: any) {
+      console.error('Local Chat Error:', err);
+      setMessages(prev => {
+        const withoutLast = prev.slice(0, -1);
+        return [...withoutLast, {
+          role: 'assistant',
+          content: "Désolé, impossible de lancer le chat local. Vérifiez votre clé API Gemini."
+        }];
+      });
     }
   };
 
