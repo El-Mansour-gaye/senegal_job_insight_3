@@ -22,6 +22,12 @@ export const ChatAssistant: React.FC = () => {
     { role: 'assistant', content: 'Bonjour ! Je suis votre assistant Sénégal Job Insights. Comment puis-je vous aider dans votre recherche ou analyse du marché aujourd\'hui ?' }
   ]);
 
+  const suggestions = [
+    "Quelles sont les tendances ce matin ?",
+    "Quelles compétences me manquent ?",
+    "Conseils pour mon CV"
+  ];
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -181,6 +187,24 @@ export const ChatAssistant: React.FC = () => {
 
             {/* Input */}
             <div className="p-4 bg-slate-800/80 border-t border-[#0a988b]/20">
+              {/* Suggestions */}
+              {messages.length < 4 && !isLoading && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {suggestions.map((suggestion, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setInput(suggestion);
+                        // Optional: auto-send
+                      }}
+                      className="text-[10px] px-3 py-1.5 bg-slate-700/50 hover:bg-[#0a988b]/20 border border-slate-600 hover:border-[#0a988b]/50 rounded-full text-slate-300 hover:text-white transition-all whitespace-nowrap"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               <div className="relative flex items-center">
                 <input
                   type="text"

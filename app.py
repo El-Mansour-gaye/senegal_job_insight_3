@@ -11,6 +11,7 @@ import logging
 from groq import Groq
 import json
 from dotenv import load_dotenv
+from rapidfuzz import process, fuzz
 
 load_dotenv()
 
@@ -102,76 +103,91 @@ async def chat_endpoint(request: Request):
 
         user_query = messages[-1]["content"]
 
-        # Stratégie de Fallback & RAG V1
+        # Stratégie de Fallback & RAG V2 (Fuzzy Search)
         context_jobs = "Aucun job spécifique trouvé pour cette recherche dans la base de données actuelle."
 
-        # Tentative de lecture du fichier (Fallback : check paths)
+        # Tentative de lecture du fichier
         df = None
         paths_to_try = [
             PROCESSED_FILE,
-            "data/raw/jobs_senegal_raw.csv" # Second fallback
+            "data/raw/jobs_senegal_raw.csv"
         ]
 
         for path in paths_to_try:
             if os.path.exists(path):
                 try:
                     df = pd.read_csv(path)
-                    logger.info(f"Données chargées depuis : {path}")
                     break
                 except Exception as e:
                     logger.error(f"Erreur lors de la lecture de {path}: {e}")
 
         if df is not None:
-            # Nettoyage minimal pour la recherche
-            df_search = df.fillna("N/A")
+            # 1. Normalisation et Synonymes
+            query = user_query.lower().strip()
+            synonyms = {
+                "bac+3": "licence l3",
+                "bac+5": "master ingénieur dea m2",
+                "bac+2": "dut bts deug",
+                "it": "informatique développeur digital tech",
+                "rh": "ressources humaines recrutement personnel"
+            }
 
-            # Filtrage par mots-clés (case-insensitive) sur les colonnes clés
-            # On cherche dans title, sector, location, key_skills
-            # Extraction des mots-clés significatifs (longueur > 3 ou spécifique)
-            words = [w.lower() for w in user_query.split() if len(w) > 3 or w.lower() in ["rh", "it", "cap", "btp", "cdi", "cdd"]]
+            expanded_query = query
+            for key, value in synonyms.items():
+                if key in query:
+                    expanded_query += f" {value}"
 
-            if not words: # Fallback si requête trop courte
-                words = [user_query.lower()]
+            # 2. Préparation du corpus (Titre > Secteur > Compétences > Ville)
+            df_search = df.fillna("")
+            search_corpus = (
+                df_search['title'] + " " +
+                df_search['sector'] + " " +
+                df_search['key_skills'] + " " +
+                df_search['location']
+            ).tolist()
 
-            # On crée un masque qui vérifie si l'un des mots-clés est présent dans l'une des colonnes
-            mask = pd.Series([False] * len(df))
-            for word in words:
-                word_mask = (
-                    df_search['title'].str.contains(word, case=False, na=False, regex=False) |
-                    df_search['sector'].str.contains(word, case=False, na=False, regex=False) |
-                    df_search['location'].str.contains(word, case=False, na=False, regex=False) |
-                    df_search['key_skills'].str.contains(word, case=False, na=False, regex=False)
-                )
-                mask = mask | word_mask
+            # 3. Recherche Floue (Fuzzy Matching)
+            # On passe à top 20 pour plus de contexte
+            fuzzy_results = process.extract(
+                expanded_query,
+                search_corpus,
+                scorer=fuzz.token_set_ratio,
+                limit=20
+            )
 
-            filtered_df = df[mask].copy()
+            # 4. Filtrage par score de confiance (> 40%)
+            relevant_indices = [res[2] for res in fuzzy_results if res[1] > 40]
 
-            if not filtered_df.empty:
-                # Tri par date de publication (plus récent en premier)
+            if relevant_indices:
+                filtered_df = df.iloc[relevant_indices].copy()
+
+                # Tri par date de publication
                 if 'publish_date' in filtered_df.columns:
                     filtered_df['publish_date'] = pd.to_datetime(filtered_df['publish_date'], errors='coerce')
                     filtered_df = filtered_df.sort_values(by='publish_date', ascending=False)
 
-                # Top 10 résultats pour le contexte
-                top_10 = filtered_df.head(10)
-
-                # Colonnes de Contexte pour l'IA
                 cols_context = ['title', 'company', 'location', 'sector', 'key_skills', 'contract_type', 'education_level', 'min_exp', 'salary_avg', 'offer_url']
-                available_cols = [c for c in cols_context if c in top_10.columns]
+                available_cols = [c for c in cols_context if c in filtered_df.columns]
+                context_jobs = filtered_df[available_cols].to_json(orient='records', force_ascii=False)
 
-                context_jobs = top_10[available_cols].to_json(orient='records', force_ascii=False)
+        system_prompt = f"""Tu es l'Expert Analyste de 'Sénégal Job IA'. Ta mission est d'aider les candidats à décrypter le marché de l'emploi au Sénégal avec précision et professionnalisme.
 
-        system_prompt = f"""Tu es l'assistant IA de 'Sénégal Job Insights'. Ton rôle est d'aider les utilisateurs à analyser le marché de l'emploi au Sénégal.
-
-Voici un extrait des données pertinentes actuelles issues de notre base de données :
+### CONTEXTE DES OFFRES (Données extraites)
 {context_jobs}
 
-Instructions :
-1. Réponds de manière professionnelle et concise.
-2. Utilise les données fournies pour étayer tes réponses.
-3. Si l'utilisateur pose une question sur un métier spécifique, une ville ou un secteur, réfère-toi aux données ci-dessus.
-4. Si les données ne contiennent pas la réponse, précise-le tout en restant utile.
-5. Ne mentionne pas que tu as reçu un 'extrait de données' ou un 'context', agis comme si tu avais accès à toute la base.
+### TES RÈGLES DE RÉPONSE
+1. ANALYSE ET SYNTHÈSE : Ne liste pas les jobs sans réfléchir. Commence par une phrase d'analyse, ex: "Le secteur [Secteur] est particulièrement dynamique à Dakar avec plusieurs opportunités en [Type de contrat]."
+2. STRUCTURE : Utilise des listes à puces. Pour chaque job mentionné, mets en gras le **Titre du poste** et l'**Entreprise**.
+3. CONSEIL STRATÉGIQUE : Si l'utilisateur pose une question sur ses chances, compare ses compétences (si fournies) avec les "key_skills" des données.
+4. GESTION DU VIDE : Si aucune donnée ne correspond, dis-le honnêtement et propose une recherche alternative (ex: "Je n'ai pas de poste de Data Scientist à Saint-Louis, mais j'en ai 3 à Dakar, voulez-vous les voir ?").
+5. STYLE : Sois encourageant, utilise un ton pro mais accessible.
+
+### EXEMPLE DE RÉPONSE ATTENDUE
+Utilisateur : "Je cherche un poste en informatique à Dakar, j'ai un Bac+3."
+Assistant : "Je vois plusieurs opportunités pour votre profil Licence (Bac+3) en informatique à Dakar.
+- **Développeur Fullstack** chez **TechSenegal** : Maîtrise de React et Node.js requise.
+- **Analyste Support** chez **DakarBoost** : Profil débutant accepté.
+Mon conseil : 70% des offres actuelles en informatique demandent une connaissance du Cloud. Pensez à valoriser vos projets personnels si vous débutez."
 """
 
         full_messages = [{"role": "system", "content": system_prompt}] + messages

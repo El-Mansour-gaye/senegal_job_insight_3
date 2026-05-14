@@ -1,0 +1,51 @@
+# Analyse Détaillée du Chatbot - Sénégal Job Insights
+
+Ce document récapitule le fonctionnement technique, le prompt utilisé et la logique de récupération de données (RAG) du chatbot.
+
+## 1. Architecture Technique
+- **Hébergement** : Vercel (Frontend React + Backend FastAPI via Serverless Functions).
+- **Modèle d'IA** : Llama 3.3 70B via l'API Groq (`llama-3.3-70b-versatile`).
+- **Interface** : Streaming (typewriter effect) avec support Markdown.
+
+## 2. Système RAG (Retrieval-Augmented Generation)
+
+### Source des Données
+Le chatbot utilise exclusivement le fichier : `public/data/jobs_senegal_processed.csv`.
+
+### Mécanisme de Recherche (Code Python dans app.py)
+Le backend extrait les mots-clés de la requête utilisateur pour filtrer le CSV :
+1. **Extraction** : Conserve les mots > 3 caractères ou les termes spécifiques (`rh`, `it`, `cdi`, etc.).
+2. **Filtrage** : Recherche (insensible à la casse) dans les colonnes :
+   - `title` (Titre du poste)
+   - `sector` (Secteur)
+   - `location` (Ville/Région)
+   - `key_skills` (Compétences clés)
+3. **Tri** : Les résultats sont triés par `publish_date` (le plus récent en premier).
+4. **Sélection** : Les **10 premières offres** trouvées sont converties en JSON et injectées dans le prompt.
+
+## 3. Le Prompt Système (System Prompt)
+Voici le texte exact envoyé à l'IA avant chaque conversation :
+
+```text
+Tu es l'assistant IA de 'Sénégal Job Insights'. Ton rôle est d'aider les utilisateurs à analyser le marché de l'emploi au Sénégal.
+
+Voici un extrait des données pertinentes actuelles issues de notre base de données :
+[DONNÉES_JSON_DU_RAG]
+
+Instructions :
+1. Réponds de manière professionnelle et concise.
+2. Utilise les données fournies pour étayer tes réponses.
+3. Si l'utilisateur pose une question sur un métier spécifique, une ville ou un secteur, réfère-toi aux données ci-dessus.
+4. Si les données ne contiennent pas la réponse, précise-le tout en restant utile.
+5. Ne mentionne pas que tu as reçu un 'extrait de données' ou un 'context', agis comme si tu avais accès à toute la base.
+```
+
+## 4. Analyse de votre Conversation
+Dans votre exemple :
+- **Requête "Bac+3 informatique"** : L'IA a répondu de manière générique ("Malheureusement, je n'ai pas de données spécifiques..."). Cela arrive si les mots-clés extraits ne correspondent à aucune ligne exacte du CSV (ex: "bac+3" n'est peut-être pas écrit ainsi dans la colonne `education_level`).
+- **Requête "donnee et ia"** : L'IA a trouvé des offres précises ("Azure Solutions Architect", "Cloud Microservices Architect"). Cela prouve que le RAG a fonctionné et a injecté ces jobs dans le contexte.
+
+## 5. Pistes d'Amélioration
+- **Recherche Sémantique** : Actuellement, c'est une recherche par mots-clés exacts (regex=False). Passer à une recherche vectorielle (embeddings) permettrait de comprendre que "Bac+3" est équivalent à "Licence".
+- **Normalisation des Requêtes** : Prétraiter la question utilisateur pour supprimer les pluriels ou extraire les entités (métiers, villes) plus efficacement.
+- **Contexte Étendu** : Augmenter le nombre de jobs envoyés à l'IA (actuellement limité à 10 pour économiser les tokens).
